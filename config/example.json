@@ -1,0 +1,10 @@
+{
+    "message": "Phantom signature message",
+    "discord_client_id": "111",
+    "discord_server_id": "222",
+    "discord_role_id": "333",
+    "discord_redirect_url": "http://host/projectName",
+    "discord_bot_token": "your-bot-token",
+    "update_authority": "your-update-authority",
+    "spl_token": "your-spl-token"
+}

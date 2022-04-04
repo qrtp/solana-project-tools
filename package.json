@@ -1,0 +1,50 @@
+{
+  "name": "authorization-bot",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "16.x"
+  },
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "postinstall": "yarn build"
+  },
+  "dependencies": {
+    "@nfteyez/sol-rayz": "^0.8.0",
+    "@nuxtjs/vercel-builder": "^0.22.1",
+    "@solana/web3.js": "^1.31.0",
+    "@solflare-wallet/sdk": "^1.0.11",
+    "@types/axios": "^0.14.0",
+    "@types/morgan": "^1.9.3",
+    "axios": "^0.24.0",
+    "base58-js": "^1.0.0",
+    "cookie-parser": "^1.4.6",
+    "core-js": "^3.15.1",
+    "discord.js": "^13.3.1",
+    "dotenv": "^10.0.0",
+    "express-session": "^1.17.2",
+    "human-date": "^1.4.0",
+    "ibm-cos-sdk": "^1.11.0",
+    "morgan": "^1.10.0",
+    "morgan-json": "^1.1.0",
+    "node-cache": "^5.1.2",
+    "node-cron": "^3.0.0",
+    "nuxt": "^2.15.7",
+    "passport": "^0.5.2",
+    "passport-twitter": "^1.0.4",
+    "tweetnacl": "^1.0.3",
+    "vuetify": "^2.6.3",
+    "winston": "^3.6.0",
+    "xss": "^1.0.10"
+  },
+  "devDependencies": {
+    "@nuxt/types": "^2.15.7",
+    "@nuxt/typescript-build": "^2.1.0",
+    "@nuxtjs/tailwindcss": "^4.2.0",
+    "@nuxtjs/vuetify": "^1.12.3",
+    "postcss": "^8.3.5"
+  }
+}
