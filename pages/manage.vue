@@ -39,7 +39,7 @@
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2">Quick start guide</h2>
         <div class="block text-gray-700 text-sm mb-5">
-          For those who want to get right to the point, <a href="https://github.com/qrtp/solana-discord-verification-bot/wiki/Setup-your-NFT-project">this is the guide for you</a>. 
+          For those who want to get right to the point, <a class=hyperlink href="https://github.com/qrtp/solana-discord-verification-bot/wiki/Setup-your-NFT-project">this is the guide for you</a>. 
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2">Show me how to do it</h2>
         <div class="block text-gray-700 text-sm mb-5">
@@ -160,20 +160,20 @@
           ✅ Quota remaining: {{discord_remaining_verifications}}
         </div>
         <div v-if="discord_remaining_verifications == '0'" class="block text-gray-700 text-sm mb-2">
-          🚫 Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          🚫 Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.is_holder" class="block text-gray-700 text-sm">
           ✅ Trait / count based role assignments
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm">
-          🚫 Trait / count based role assignments (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          🚫 Trait / count based role assignments (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Sales Tracking</h2>
         <div class="block text-sm mb-2"> 
           ✅ <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          ✅ Default Twitter notification bot <a class="hyperlink" href="https://twitter.com/nft4causeBot">@nft4causeBot</a>
+          ✅ Default Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.$config.twitter_dbot">@{{ this.$config.twitter_dbot }}</a>
         </div>
         <div v-if="this.is_holder && this.discord_webhook" class="block text-gray-700 text-sm mb-2">
           ✅ Discord notification bot
@@ -182,7 +182,7 @@
           ➕ Discord notification bot (add webhook URL above)
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Discord notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          🚫 Discord notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.$config.twitter_enabled">
           <div v-if="this.is_holder && this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
@@ -192,7 +192,7 @@
             ➕ Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
           </div>
           <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-            🚫 Custom Twitter notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+            🚫 Custom Twitter notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
           </div>
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Voting</h2>
@@ -241,7 +241,7 @@
           </div>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Holder only voting service (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          🚫 Holder only voting service (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
     </div>
   </div>

@@ -1,17 +1,13 @@
 <template>
   <header class="z-50 w-full shadow-lg bg-white">
     <v-app-bar
-      color="#fcb69f"
+      style="
+        background: #3a1c71;
+        background: -webkit-linear-gradient(300deg, #e66465, #9198e5);
+        background: linear-gradient(300deg, #e66465, #9198e5);
+      "
       dark
-      src="https://picsum.photos/1920/1080?random"
-      scroll-target="#scrolling"
     >
-      <template v-slot:img="{ props }">
-        <v-img
-          v-bind="props"
-          gradient="to top right, rgba(19,84,122,.5), rgba(128,208,199,.8)"
-        ></v-img>
-      </template>
       <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
       <span class="title text-no-wrap">{{ this.$config.project_name }} | Solana Tools</span>
       <v-spacer></v-spacer>
@@ -68,17 +64,31 @@ export default {
   .title {
     @apply text-white text-lg font-semibold
   }
+  .hyperlink {
+    @apply text-base font-bold
+  }
+  .hyperlink:link{
+    @apply text-base font-bold
+  }
+  .hyperlink:hover{
+    @apply text-base underline font-bold
+  }
+  .hyperlink:visited {
+    @apply text-base font-bold
+  }
+
+
   .navlink {
-    @apply text-white text-base
+    @apply text-white text-base font-bold
   }
   .navlink:link{
-    @apply text-white text-base
+    @apply text-white text-base font-bold
   }
   .navlink:hover{
-    @apply text-white text-base underline
+    @apply text-white text-base underline font-bold
   }
   .navlink:visited {
-    @apply text-white text-base
+    @apply text-white text-base font-bold
   }
   .titleWidth{
   width: 400px !important;

@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  nuxt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /bin/sh -c "yarn && yarn dev"
+    tty: true
+    expose:
+      - 3000
+    ports:
+      - "8084:8084"
+    networks:
+      - internal
+      - web
+    labels:
+      - traefik.http.routers.lp.rule=Host(`verify.autosol.io`)
+      - traefik.http.routers.lp.tls=true
+      - traefik.http.routers.lp.tls.certresolver=lets-encrypt
+      - traefik.port=8084
+    volumes:
+      - .:/app
+      - ./node_modules:/app/node_modules:cached
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
