@@ -11,7 +11,6 @@
         <div class="block text-gray-700 text-sm mb-5">
           <v-dialog
             v-model="dialog"
-            persistent
             max-width="305"
           >
             <template v-slot:activator="{ on, attrs }">
@@ -24,16 +23,21 @@
                 Connect Wallet
               </v-btn>
             </template>
-            <v-card>
-              <v-card-title class="text-h5">
+            <v-card color="#11141e">
+              <v-card-title class="white--text text-h5">
                 Choose a Wallet
               </v-card-title>
-              <v-card-text>The wallet will be used as login credentials for your project.</v-card-text>
+              <v-card-text class="white--text">The wallet will be used as login credentials for your project.</v-card-text>
               <v-card-actions>
-                <v-btn color="green darken-1" text @click="connectWallet('phantom')">Phantom</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('solflare')">Solflare</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('slope')">Slope</v-btn>
+                <v-btn block color="#4b34a2" class="white--text" @click="connectWallet('phantom')">Phantom</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#f19a41" class="white--text" @click="connectWallet('solflare')">Solflare</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#6b6bf1" class="white--text" @click="connectWallet('slope')">Slope</v-btn>
               </v-card-actions>
+	      <v-spacer></v-spacer>
             </v-card>
           </v-dialog>
         </div>
@@ -91,8 +95,8 @@
             <input class="mb-1 shadow appearance-none border rounded w-3/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.discord_role_id" placeholder="Discord role ID">
             <input class="mb-1 shadow appearance-none border rounded w-1/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.required_balance" placeholder="#">
             <span>
-              <a href="#" @click="remove(k)" v-show="k || ( !k && discord_roles.length > 1)">➖</a>
-              <a href="#" @click="add(k)" v-show="k == discord_roles.length-1">➕</a>
+              <a href="#" @click="remove(k)" v-show="k || ( !k && discord_roles.length > 1)">âž–</a>
+              <a href="#" @click="add(k)" v-show="k == discord_roles.length-1">âž•</a>
             </span>
           </div>
         </div>
@@ -154,51 +158,51 @@
     <div v-if="this.configResponse">
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Discord Verification Service</h2>
         <div class="block text-sm mb-2"> 
-          ✅ <a class=hyperlink :href="this.discord_redirect_url">{{discord_redirect_url}}</a>
+          âœ… <a class=hyperlink :href="this.discord_redirect_url">{{discord_redirect_url}}</a>
         </div>
         <div v-if="discord_remaining_verifications != '0'" class="block text-gray-700 text-sm mb-2">
-          ✅ Quota remaining: {{discord_remaining_verifications}}
+          âœ… Quota remaining: {{discord_remaining_verifications}}
         </div>
         <div v-if="discord_remaining_verifications == '0'" class="block text-gray-700 text-sm mb-2">
-          🚫 Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          ðŸš« Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.is_holder" class="block text-gray-700 text-sm">
-          ✅ Trait / count based role assignments
+          âœ… Trait / count based role assignments
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm">
-          🚫 Trait / count based role assignments (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          ðŸš« Trait / count based role assignments (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Sales Tracking</h2>
         <div class="block text-sm mb-2"> 
-          ✅ <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
+          âœ… <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          ✅ Default Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.$config.twitter_dbot">@{{ this.$config.twitter_dbot }}</a>
+          âœ… Default Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.$config.twitter_dbot">@{{ this.$config.twitter_dbot }}</a>
         </div>
         <div v-if="this.is_holder && this.discord_webhook" class="block text-gray-700 text-sm mb-2">
-          ✅ Discord notification bot
+          âœ… Discord notification bot
         </div>
         <div v-if="this.is_holder && !this.discord_webhook" class="block text-gray-700 text-sm mb-2">
-          ➕ Discord notification bot (add webhook URL above)
+          âž• Discord notification bot (add webhook URL above)
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Discord notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          ðŸš« Discord notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.$config.twitter_enabled">
           <div v-if="this.is_holder && this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            ✅ Custom Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
+            âœ… Custom Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
           </div>
           <div v-if="this.is_holder && !this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            ➕ Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
+            âž• Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
           </div>
           <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-            🚫 Custom Twitter notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+            ðŸš« Custom Twitter notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
           </div>
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Voting</h2>
         <div v-if="this.is_holder">
           <div class="block text-gray-700 text-sm mb-2">
-            ✅ <a class=hyperlink :href="this.discord_redirect_url+'/vote'">{{discord_redirect_url}}/vote</a>
+            âœ… <a class=hyperlink :href="this.discord_redirect_url+'/vote'">{{discord_redirect_url}}/vote</a>
           </div>
           <div class="block text-gray-700 text-sm mb-2">
             <v-dialog
@@ -207,7 +211,7 @@
               max-width="305"
             >
               <template v-slot:activator="{ on, attrs }">
-                <a href="#" @click="voteDialog=true">➕ Create new vote</a>
+                <a href="#" @click="voteDialog=true">âž• Create new vote</a>
               </template>
               <v-card>
                 <v-card-title class="text-h5">
@@ -241,7 +245,7 @@
           </div>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Holder only voting service (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          ðŸš« Holder only voting service (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
     </div>
   </div>
