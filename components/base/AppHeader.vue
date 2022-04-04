@@ -55,7 +55,7 @@ export default {
       mobileRoutes: [
         { icon: "mdi-home", href: "/", label: "Home" },
         { icon: "mdi-cog", href: "/manage", label: "Manage" },
-        { icon: "mdi-file-document", href: "https://github.com/qrtp/solana-discord-verification-bot/wiki", label: "Documentation" },
+        { icon: "mdi-file-document", href: "https://github.com/qrtp/solana-project-tools/wiki", label: "Documentation" },
         { icon: "mdi-table", href: "/projects", label: "Leaderboard" },
         { icon: "mdi-information", href: this.$config.about_url, label: "About the team" },
         { icon: "mdi-hand-coin", href: this.$config.upgrade_url, label: "Donate!" }
