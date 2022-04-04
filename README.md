@@ -1,12 +1,16 @@
 # solana-project-tools
 
-This project enables Solana NFT project owners to assign custom Discord server roles to users holding their NFT. The Discord user navigates to a verification URL to submit their wallet for analysis, and the Discord role is immediately assigned if holding criteria is met. For any questions message me on twitter [@NFT4Cause](https://twitter.com/nft4cause).
+NFT 4 Cause develops opensource tools because we believe in giving back to the Solana NFT community. Our mission is to enable projects to focus their funds on developing their community and making progress on their roadmap.
+
+The primary purpose of this repository is to enable Solana NFT project owners to assign custom Discord server roles to users holding their NFT. The Discord user navigates to a verification URL to submit their wallet for analysis, and the Discord role is immediately assigned if holding criteria is met. 
 
 Additional services offered in the project tools suite:
-1. NFT holder owner voting service
+
+1. NFT holder only voting service
 1. Sales tracking
-1. Discord notification bot
-1. Twitter notification bot
+1. Sales notification bots for Twitter and Discord
+
+Full documentation of the service features can be found on our [wiki](https://github.com/qrtp/solana-project-tools/wiki). For any questions message me on twitter [@NFT4Cause](https://twitter.com/nft4cause).
 
 # Hosted service
 We offer this project as a free hosted service at [https://verify.4cause.app](https://verify.4cause.app). Feel free to register your project on our highly available deployment across IBM Cloud and Google Cloud.
