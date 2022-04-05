@@ -1,4 +1,4 @@
-<template >
+<template>
     <div>
         <h2 class="block text-gray-700 text-2xl font-bold mb-2">Welcome!</h2>
         <div class="block text-gray-700 text-sm mb-2">
@@ -16,7 +16,7 @@
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-2">What is sales tracking?</h2>
         <div class="block text-gray-700 text-sm mb-2">
-            Sales tracking continuously monitors your NFT collection for new mints and secondary market sales. Whenever activity is detected, we update your collection page and post a message to our community <a href="https://www.twitter.com/NFT4CauseBot">Twitter sales tracking bot</a>. 
+            Sales tracking continuously monitors your NFT collection for new mints and secondary market sales. Whenever activity is detected, we update your collection page and post a message to our community <a class=hyperlink :href="'https://twitter.com/'+this.$config.twitter_bot">Twitter sales tracking bot</a>. 
             <br>
             <br>
             If you're an NFT 4 Cause NFT holder, we will also notify channels on your Discord server as well as your project's Twitter account. Custom sales notifications allow your followers to celebrate with you every time your collection exchanges hands.
@@ -26,7 +26,7 @@
             We offer these free hosted services because we believe in giving back to the Solana NFT community. Our mission is to enable projects to focus their funds on developing their community and making progress on their roadmap.
         </div>
         <div class="block text-gray-700 text-sm mb-2">
-            At <a class="hyperlink" href="http://www.nft4cause.app">NFT 4 Cause</a> we create socially relevant NFTs to generate funds for global nonprofits. <b>Every NFT minted or traded on the secondary market is an 80% donation!</b> Everything else funds the development of tools like this to enhance the Solana community.
+            At <a class="hyperlink" :href="this.$config.about_url">{{ this.$config.project_name }}</a> we create socially relevant NFTs to generate funds for global nonprofits. <b>Every NFT minted or traded on the secondary market is an 80% donation!</b> Everything else funds the development of tools like this to enhance the Solana community.
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-2">Opensource</h2>
         <div class="block text-gray-700 text-sm mb-2">

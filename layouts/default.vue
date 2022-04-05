@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div class="bg-gray-100 flex-col h-screen">
+    <div class="flex-col">
       <AppHeader />
       <div class="flex justify-center items-center flex-col mt-5 mr-5 ml-5">
           <div class="w-full max-w-2xl">

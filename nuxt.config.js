@@ -1,7 +1,7 @@
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: process.env.PRODUCT_NAME || 'NFT 4 Cause | Solana Tools',
+    title: process.env.PRODUCT_NAME || '| Solana Tools',
     htmlAttrs: {
       lang: 'en'
     },
@@ -14,7 +14,7 @@ export default {
       { content: "https://www.nft4cause.app/img/nft4c-governance-token.png", property: "og:image" }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: process.env.LOGO_URL }
     ]
   },
 
@@ -30,6 +30,9 @@ export default {
     project_name: process.env.PRODUCT_NAME,
     upgrade_url: process.env.UPGRADE_URL,
     about_url: process.env.ABOUT_URL,
+    twitter_dbot: process.env.TWITTER_DBOT,
+    twitter_handle: process.env.TWITTER_HANDLE,
+    discord_invite: process.env.DISCORD_INVITE,
     twitter_enabled: process.env.TWITTER_ENABLED,
     max_free_verifications: parseInt(process.env.MAX_FREE_VERIFICATIONS)
   }
