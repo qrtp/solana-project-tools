@@ -27,6 +27,11 @@ export async function readCOSFile(fileName: string) {
     return await getItem(bucketName, fileName)
 }
 
+// readCOSFile reads contents of a file from COS bucket
+export async function deleteCOSFile(fileName: string) {
+    return await deleteItem(bucketName, fileName)
+}
+
 // listCOSFiles retrieves names of items matching a given string
 export async function listCOSFiles(matchString: string) {
     var allBucketItems = await getBucketObjects(bucketName)
@@ -121,6 +126,24 @@ async function getItem(bucketName: string, itemName: string) {
         logError(e)
     }
     return null
+}
+
+// Remove a particular item from the bucket
+async function deleteItem(bucketName: string, itemName: string) {
+    logger.info(`deleting text file from bucket: ${bucketName}, key: ${itemName}`);
+    try {
+        var result = await cos.deleteObject({
+            Bucket: bucketName,
+            Key: itemName
+        }).promise()
+        if (result) {
+            logger.info(`successfully deleted text file from bucket: ${bucketName}, key: ${itemName}`)
+            return true
+        }
+    } catch (e) {
+        logError(e)
+    }
+    return false
 }
 
 // initCOS initializes COS instance
