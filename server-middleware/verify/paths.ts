@@ -18,6 +18,10 @@ export function getPublicKeyFilePath(address: any) {
     return `./config/publicKey-${address}.json`
 }
 
+export function getSalesAuditFilePath(updateAuthority: any) {
+    return `auditfile-${updateAuthority}-console.json`
+}
+
 export function getSalesFilePath(updateAuthority: any) {
     return `sales-${updateAuthority}-console.json`
 }
