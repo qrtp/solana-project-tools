@@ -1,4 +1,4 @@
-import { initializeCOS, listCOSFiles, readCOSFile, useCOS, writeCOSFile } from "./ibm-cos";
+import { deleteCOSFile, initializeCOS, listCOSFiles, readCOSFile, useCOS, writeCOSFile } from "./ibm-cos";
 
 const fs = require('fs')
 const NodeCache = require("node-cache")
@@ -97,6 +97,22 @@ export async function write(fileName: string, contents: string) {
         return true
     } catch (e) {
         logger.info("error writing file", e)
+    }
+    return false
+}
+
+export async function remove(fileName: string) {
+    logger.info(`removing file ${fileName}`)
+    if (useCOS()) {
+        if (await deleteCOSFile(fileName)) {
+            cosCache.del(fileName)
+        }
+    }
+    try {
+        fs.unlinkSync(fileName)
+        return true
+    } catch (e) {
+        logger.info("error removing file", e)
     }
     return false
 }

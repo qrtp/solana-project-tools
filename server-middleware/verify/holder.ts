@@ -23,7 +23,7 @@ const defaultHttpTimeout = 60000
 
 // validates signature of a given message
 export function isSignatureValid(publicKeyString: string, signature: any, message: any) {
-    logger.info(`validating signagure ${signature} for public key ${publicKeyString}`)
+    logger.info(`validating signagure for public key ${publicKeyString}`)
     const encodedMessage = new TextEncoder().encode(message)
     let publicKey = new PublicKey(publicKeyString).toBytes()
     const encryptedSignature = base58_to_binary(signature)

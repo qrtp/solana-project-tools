@@ -6,7 +6,7 @@ import morganMiddleware from './logger/morgan'
 import { initializeStorage, read, write } from './storage/persist'
 import { getHodlerRoles, isSignatureValid, reloadHolders } from './verify/holder'
 import { getConfigFilePath, getHodlerFilePath, getPublicKeyFilePath, getRevalidationSuccessPath, getSalesFilePath, getSalesTrackerLockPath, getSalesTrackerSuccessPath } from './verify/paths'
-import { getAllProjects, getConfig, getHodlerList } from './verify/project'
+import { getAllProjects, getConfig, getHodlerList, removeProject } from './verify/project'
 import { getFieldValue, toCamelCase } from './verify/util'
 import { createVote, deleteVote, getProjectVotesForUser } from './vote/project'
 import { castVote } from './vote/user'
@@ -329,6 +329,38 @@ app.get('/getProjects', async (req: Request, res: Response) => {
     metrics: aggregateData,
     projects: projectData
   })
+})
+
+// Endpoint to remove a project, admin access only
+app.post('/deleteProject', async (req: any, res: Response) => {
+
+  // Validates signature sent from client
+  var publicKeyString = req.body.publicKey
+  if (!isSignatureValid(publicKeyString, req.body.signature, process.env.MESSAGE)) {
+    logger.info(`signature invalid for public key ${publicKeyString}`)
+    return res.sendStatus(400)
+  }
+
+  // read the project query string value
+  var projectName = req.body.project
+  if (!projectName || projectName == "") {
+    logger.info(`project name is required`)
+    return res.sendStatus(400)
+  }
+
+  // validate system admin is calling the remove function
+  if (publicKeyString != process.env.UPDATE_AUTHORITY) {
+    logger.info(`unauthorized attempt to remove a project by wallet ${publicKeyString}`)
+    return res.sendStatus(401)
+  }
+
+  // remove the project
+  if (await removeProject(projectName)) {
+    logger.info(`successfully removed project ${projectName}`)
+    return res.sendStatus(200)
+  }
+  logger.info(`unable to remove project ${projectName}`)
+  return res.sendStatus(400)
 })
 
 // Endpoint to create a new project
