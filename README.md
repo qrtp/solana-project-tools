@@ -118,3 +118,23 @@ $ pm2 start Discord
 
 # Browse to ip:8443 or ip:<port-set-in-env-file>
 ```
+
+## Update Script
+```bash
+# pm2 stop Discord
+
+# copy .env file to safe location
+
+# clone repo
+$ git clone https://github.com/qrtp/solana-project-tools.git
+$ cd solana-project-tools
+
+# copy .env file back to project repo
+
+
+# edit meta data (line 8) in nuxtjs.config.js
+
+# build for production and launch server
+$ yarn build
+$ pm2 start Discord
+```
