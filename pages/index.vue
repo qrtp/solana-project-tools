@@ -30,7 +30,7 @@
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-2">Opensource</h2>
         <div class="block text-gray-700 text-sm mb-2">
-            We believe in Opensource software. All the code for our Solana NFT services is freely <a class=hyperlink href="https://github.com/qrtp/solana-discord-verification-bot">available on GitHub</a> for review, auditing and use in other projects.
+            We believe in Opensource software. All the code for our Solana NFT services is freely <a class=hyperlink href="https://github.com/qrtp/solana-project-tools">available on GitHub</a> for review, auditing and use in other projects.
         </div>
     </div>
 </template>

@@ -58,50 +58,111 @@
     </div>
     <div v-if="step === 3">
       <form @submit.prevent="submitForm" >
-        <h2 class="block text-gray-700 text-xl font-bold mb-2">Project configuration</h2>
         <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Project info</h2>
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="project" v-if="!this.configResponse" placeholder="Project name">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="project_friendly_name" v-if="this.configResponse" placeholder="Collection name">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="project_twitter_name" placeholder="@ProjectTwitterHandle">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="project_website" placeholder="Website URL">
-        </div>
-        <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Mint info</h2>
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="update_authority" placeholder="Update authority ID">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="royalty_wallet_id" placeholder="Treasury / royalty wallet ID">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="spl_token" placeholder="White list token ID">
-        </div>
-        <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Discord server info</h2>
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_url" placeholder="Discord URL">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_server_id" placeholder="Discord server ID">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role_id" placeholder="Discord default role ID">
-        </div>
-        <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Discord bot info</h2>
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_client_id" placeholder="Discord bot client ID">
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="password" v-model="discord_bot_token" placeholder="Discord bot token">
-        </div>
-        <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Trait / count based role assignments (optional)</h2>
-          <div class="form-group" v-for="(discord_role,k) in discord_roles" :key="k">
-            <input class="mb-1 shadow appearance-none border rounded w-3/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.key" placeholder="Metadata key">
-            <input class="mb-1 shadow appearance-none border rounded w-3/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.value" placeholder="Metadata value">
-            <input class="mb-1 shadow appearance-none border rounded w-3/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.discord_role_id" placeholder="Discord role ID">
-            <input class="mb-1 shadow appearance-none border rounded w-1/12 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="discord_role.required_balance" placeholder="#">
-            <span>
-              <a href="#" @click="remove(k)" v-show="k || ( !k && discord_roles.length > 1)">➖</a>
-              <a href="#" @click="add(k)" v-show="k == discord_roles.length-1">➕</a>
-            </span>
+          <h2 class="block text-gray-700 text-2xl font-bold mb-2">Project configuration</h2>
+          <div class="block text-gray-700 text-sm mb-6">
+            Configure your Solana NFT project using the form below. Please remember, there are <a href="https://github.com/qrtp/solana-project-tools/wiki/Setup-your-NFT-project">step-by-step instructions</a> and a <a href="https://www.youtube.com/watch?v=QFRDIN4athM">video</a> if you need some help.
           </div>
+          <v-card>
+            <v-card-title>Project info</v-card-title>
+            <v-card-text>
+              <v-text-field
+                hint="The project's display name"
+                v-model="project" v-if="!this.configResponse" label="Project name" :rules="[rules.required, rules.maxcount]"></v-text-field>
+              <v-text-field
+                hint="The project's display name"
+                v-model="project_friendly_name" v-if="this.configResponse" label="Project name" :rules="[rules.required, rules.maxcount]"></v-text-field>
+              <v-text-field
+                hint="The project's @twitterHandle"
+                v-model="project_twitter_name" label="Twitter handle" :rules="[rules.required, rules.maxcount]"></v-text-field>
+              <v-text-field
+                hint="The project's website address"
+                v-model="project_website" label="Website URL" :rules="[rules.required, rules.maxcount, rules.url]"></v-text-field>
+            </v-card-text>
+          </v-card>
         </div>
         <div class="mb-4">
-          <h2 class="block text-gray-700 text-sm font-bold mb-2">Sales tracking notifications</h2>
-          <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="password" v-model="discord_webhook" placeholder="Discord webhook URL">
+          <v-card>
+            <v-card-title>Mint info</v-card-title>
+            <v-card-text>
+              <v-text-field
+                hint="The update authority address for the NFTs in your collection. Hint, lookup one of your NFTs in Solscan and copy/paste the update authority value."
+                v-model="update_authority" label="Update authority ID" :rules="[rules.required, rules.account]"></v-text-field>
+              <v-text-field
+                hint="The wallet address where funds are first deposited from mint and/or secondary sales."
+                v-model="royalty_wallet_id" label="Treasury / royalty wallet ID" :rules="[rules.required, rules.account]"></v-text-field>
+              <v-text-field
+                hint="Optional: A comma separated list of additional SPL token and/or update authority addresses we should look for to assign the default Discord role."
+                v-model="spl_token" label="White list token ID" :rules="[rules.accounts]"></v-text-field>
+            </v-card-text>
+          </v-card>
         </div>
-        <v-btn color="primary" @click="submitForm">Save</v-btn>
+        <div class="mb-4">
+          <v-card>
+            <v-card-title>Discord server info</v-card-title>
+            <v-card-text>
+              <v-text-field
+                hint="The Discord invite link for your project."
+                v-model="discord_url" label="Discord URL" :rules="[rules.required, rules.maxcount, rules.url]"></v-text-field>
+              <v-text-field
+                hint="The Discord server ID where we will assign roles to your NFT holders."
+                v-model="discord_server_id" label="Discord server ID" :rules="[rules.required, rules.number]"></v-text-field>
+              <v-text-field
+                hint="The default Discord role assigned to any holder who validates their wallet. Additional roles can be configured below for holders of multiple NFTs, etc."
+                v-model="discord_role_id" label="Discord default role ID" :rules="[rules.required, rules.number]"></v-text-field>
+            </v-card-text>
+          </v-card>
+        </div>
+        <div class="mb-4">
+          <v-card>
+            <v-card-title>Discord bot info</v-card-title>
+            <v-card-text>
+              <v-text-field
+                hint="Your bot's client ID from the Discord Developer Portal."
+                v-model="discord_client_id" label="Discord bot client ID" :rules="[rules.required, rules.number]"></v-text-field>
+              <v-text-field
+                hint="Your bot's authentication token from the Discord Developer Portal."
+                v-model="discord_bot_token" label="Discord bot token" type="password" :rules="[rules.required, rules.maxcount]"></v-text-field>
+            </v-card-text>
+          </v-card>
+        </div>
+        <div class="mb-8">
+          <h2 class="block text-gray-700 text-xl font-bold mb-2">Trait / count based role assignments (optional)</h2>
+           <v-flex>
+            <v-card v-for="(discord_role,k) in discord_roles" :key="k" class="w-1/3 mr-3">
+              <v-card-text>
+                <v-text-field
+                  hint="An NFT metadata trait, such as 'Shirt'. Use * to match any metadata field."
+                  v-model="discord_role.key" label="Metadata key" :rules="[rules.required, rules.maxcount]"></v-text-field>
+                <v-text-field
+                  hint="An NFT metadata value, such as 'Legendary'. Use * to match any metadata field value."
+                  v-model="discord_role.value" label="Metadata value" :rules="[rules.required, rules.maxcount]"></v-text-field>
+                <v-text-field
+                  hint="The number of matching NFTs the user must hold to receive the role. For example, a diamond hand holder may have key=*, value=*, count=10"
+                  v-model="discord_role.required_balance" label="Count" :rules="[rules.required, rules.number]"></v-text-field>
+                <v-text-field
+                  hint="The Discord role ID to assign to holders matching the metadata key, value and count."
+                  v-model="discord_role.discord_role_id" label="Discord role ID" :rules="[rules.required, rules.number]"></v-text-field>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn color="green darken-1" text @click="remove(k)" v-show="k || ( !k && discord_roles.length > 1)">Remove</v-btn>
+                <v-btn color="green darken-1" text @click="add(k)" v-show="k == discord_roles.length-1">Add</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-flex>
+        </div>
+        <div class="mb-4">
+          <v-card>
+            <v-card-title>Sales tracking notifications</v-card-title>
+            <v-card-text>
+              <v-text-field
+                hint="The Discord webhook URL to notify every time we detect your project NFT sales."
+                v-model="discord_webhook" label="Discord webhook URL" type="password" :rules="[rules.required, rules.maxcount]"></v-text-field>
+            </v-card-text>
+          </v-card>
+        </div>
         <v-btn color="grey" @click="disconnectWallet">Cancel</v-btn>
+        <v-btn color="primary" @click="submitForm">Save</v-btn>
       </form>
     </div>
     <div v-if="step === 4">
@@ -154,51 +215,51 @@
     <div v-if="this.configResponse">
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Discord Verification Service</h2>
         <div class="block text-sm mb-2"> 
-          ✅ <a class=hyperlink :href="this.discord_redirect_url">{{discord_redirect_url}}</a>
+          <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url">{{discord_redirect_url}}</a>
         </div>
         <div v-if="discord_remaining_verifications != '0'" class="block text-gray-700 text-sm mb-2">
-          ✅ Quota remaining: {{discord_remaining_verifications}}
+          <v-icon>mdi-check-circle</v-icon> Quota remaining: {{discord_remaining_verifications}}
         </div>
         <div v-if="discord_remaining_verifications == '0'" class="block text-gray-700 text-sm mb-2">
-          🚫 Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
         </div>
         <div v-if="this.is_holder" class="block text-gray-700 text-sm">
-          ✅ Trait / count based role assignments
+          <v-icon>mdi-check-circle</v-icon> Trait / count based role assignments
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm">
-          🚫 Trait / count based role assignments (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Trait / count based role assignments (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Sales Tracking</h2>
         <div class="block text-sm mb-2"> 
-          ✅ <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
+          <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          ✅ Default Twitter notification bot <a class="hyperlink" href="https://twitter.com/nft4causeBot">@nft4causeBot</a>
+          <v-icon>mdi-check-circle</v-icon> Default Twitter notification bot <a class="hyperlink" href="https://twitter.com/nft4causeBot">@nft4causeBot</a>
         </div>
         <div v-if="this.is_holder && this.discord_webhook" class="block text-gray-700 text-sm mb-2">
-          ✅ Discord notification bot
+          <v-icon>mdi-check-circle</v-icon> Discord notification bot
         </div>
         <div v-if="this.is_holder && !this.discord_webhook" class="block text-gray-700 text-sm mb-2">
-          ➕ Discord notification bot (add webhook URL above)
+          <v-icon>mdi-plus-circle</v-icon> Discord notification bot (add webhook URL above)
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Discord notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Discord notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
         </div>
         <div v-if="this.$config.twitter_enabled">
           <div v-if="this.is_holder && this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            ✅ Custom Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
+            <v-icon>mdi-check-circle</v-icon> Custom Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
           </div>
           <div v-if="this.is_holder && !this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            ➕ Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
+            <v-icon>mdi-plus-circle</v-icon> Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
           </div>
           <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-            🚫 Custom Twitter notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+            <v-icon>mdi-close-circle-outline</v-icon> Custom Twitter notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
           </div>
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Voting</h2>
         <div v-if="this.is_holder">
           <div class="block text-gray-700 text-sm mb-2">
-            ✅ <a class=hyperlink :href="this.discord_redirect_url+'/vote'">{{discord_redirect_url}}/vote</a>
+            <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url+'/vote'">{{discord_redirect_url}}/vote</a>
           </div>
           <div class="block text-gray-700 text-sm mb-2">
             <v-dialog
@@ -207,7 +268,7 @@
               max-width="305"
             >
               <template v-slot:activator="{ on, attrs }">
-                <a href="#" @click="voteDialog=true">➕ Create new vote</a>
+                <a href="#" @click="voteDialog=true"><v-icon>mdi-plus-circle</v-icon> Create new vote</a>
               </template>
               <v-card>
                 <v-card-title class="text-h5">
@@ -215,8 +276,12 @@
                 </v-card-title>
                 <v-card-text>Create a vote below. Please note, votes cannot be modified. Once the first vote is cast a vote cannot be deleted.</v-card-text>
                 <v-card-text>
-                  <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="voteTitle" placeholder="Vote question">
-                  <input class="mb-1 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" v-model="voteChoices" placeholder="Vote choices (choice 1, choice 2)">
+                  <v-text-field
+                    hint="The question you want to ask your holders."
+                    v-model="voteTitle" label="Vote question" :rules="[rules.required, rules.maxcount]"></v-text-field>
+                  <v-text-field
+                    hint="Comma separated list of vote choices (e.g. choice 1, choice 2, choice 3)"
+                    v-model="voteChoices" label="Vote choices" :rules="[rules.required, rules.maxcount]"></v-text-field>
                   <v-select
                     v-model="voteExpiryTime"
                     :items="voteExpiryTimeItems"
@@ -241,7 +306,7 @@
           </div>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          🚫 Holder only voting service (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
         </div>
     </div>
   </div>
@@ -293,6 +358,35 @@ export default Vue.extend({
       voteRequiredItems: [],
       voteRequiredRoles: [],
       voteChoices: '',
+      rules: {
+          required: (value:any) => !!value || 'Required.',
+          maxcount: (value:any) => value.length <= 100 || 'Max 100 characters',
+          number: (value:any) => {
+            return /^\d+$/.test(value) || 'Invalid number'
+          },
+          account: (value:any) => value.length == 44 || 'Invalid account address',
+          accounts: (value:any) => {
+            for (const account of value.split(",")) {
+              if (account.length != 44) { 
+                return `Invalid account ${account}`
+              }
+            }
+            return true
+          },
+          url: (value:any) => {
+            let url
+            try {
+              url = new URL(value)
+            } catch (_) {
+              return 'Invalid URL' 
+            }
+            return (url.protocol === "http:" || url.protocol === "https:") || 'Invalid URL'
+          },
+          email: (value:any) => {
+            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            return pattern.test(value) || 'Invalid e-mail.'
+          },
+        },
     }
   },
   async mounted() {
