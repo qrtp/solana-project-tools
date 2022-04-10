@@ -57,7 +57,7 @@
         </div>
     </div>
     <div v-if="step === 3">
-      <form @submit.prevent="submitForm" >
+      <v-form ref="form">
         <div class="mb-4">
           <h2 class="block text-gray-700 text-2xl font-bold mb-2">Project configuration</h2>
           <div class="block text-gray-700 text-sm mb-6">
@@ -128,6 +128,7 @@
         </div>
         <div class="mb-8">
           <h2 class="block text-gray-700 text-xl font-bold mb-2">Trait / count based role assignments (optional)</h2>
+           <v-btn color="secondary" class="mb-3" @click="add()">Add advanced role</v-btn>
            <v-flex>
             <v-card v-for="(discord_role,k) in discord_roles" :key="k" class="w-1/3 mr-3">
               <v-card-text>
@@ -145,8 +146,7 @@
                   v-model="discord_role.discord_role_id" label="Discord role ID" :rules="[rules.required, rules.number]"></v-text-field>
               </v-card-text>
               <v-card-actions>
-                <v-btn color="green darken-1" text @click="remove(k)" v-show="k || ( !k && discord_roles.length > 1)">Remove</v-btn>
-                <v-btn color="green darken-1" text @click="add(k)" v-show="k == discord_roles.length-1">Add</v-btn>
+                <v-btn color="red darken-1" text @click="remove(k)">Remove</v-btn>
               </v-card-actions>
             </v-card>
           </v-flex>
@@ -163,7 +163,8 @@
         </div>
         <v-btn color="grey" @click="disconnectWallet">Cancel</v-btn>
         <v-btn color="primary" @click="submitForm">Save</v-btn>
-      </form>
+        <div v-show="invalidForm" class="text-red-600 text-sm mt-3">Project setup invalid! Double check your input :)</div>
+      </v-form>
     </div>
     <div v-if="step === 4">
         <h2 class="block text-gray-700 text-xl font-bold mb-2">Oops, something went wrong</h2>
@@ -320,8 +321,10 @@ const { binary_to_base58 } = require('base58-js')
 
 export default Vue.extend({
   data() {
+    var defaultRoles: any[] = []
     return {
       voteDialog: false,
+      invalidForm: false,
       discordUsername: '',
       step: 0,
       discordAvatar: '',
@@ -346,12 +349,7 @@ export default Vue.extend({
       discord_remaining_verifications: '',
       is_holder: false,
       connected_twitter_name: '',
-      discord_roles: [{
-        discord_role_id: '',
-        required_balance: '',
-        key: '',
-        value: ''
-      }],
+      discord_roles: defaultRoles,
       voteTitle: '',
       voteExpiryTime: '',
       voteExpiryTimeItems: ["1","2","3","4","5","6","7","8","9","10"],
@@ -367,7 +365,7 @@ export default Vue.extend({
           account: (value:any) => value.length == 44 || 'Invalid account address',
           accounts: (value:any) => {
             for (const account of value.split(",")) {
-              if (account.length != 44) { 
+              if (account.trim().length > 0 && account.trim().length != 44) { 
                 return `Invalid account ${account}`
               }
             }
@@ -561,7 +559,7 @@ export default Vue.extend({
     goToVoting(){
       this.$router.push('/' + this.project + '/vote');
     },
-    add () {
+    add() {
       this.discord_roles.push({
         discord_role_id: '',
         required_balance: '',
@@ -577,6 +575,14 @@ export default Vue.extend({
       alert("hello " + this.publicKey)
     },
     async submitForm() {
+
+        // validate the form
+        if (!(this.$refs.form as Vue & { validate: () => boolean }).validate()) {
+          this.invalidForm = true
+          return
+        }
+        this.invalidForm = false
+
         let res 
         try{
           var url = (!this.isUpdate) ? '/api/createProject' : '/api/updateProject'
