@@ -157,7 +157,7 @@
             <v-card-text>
               <v-text-field
                 hint="The Discord webhook URL to notify every time we detect your project NFT sales."
-                v-model="discord_webhook" label="Discord webhook URL" type="password" :rules="[rules.required, rules.maxcount]"></v-text-field>
+                v-model="discord_webhook" label="Discord webhook URL" type="password"></v-text-field>
             </v-card-text>
           </v-card>
         </div>
@@ -362,7 +362,7 @@ export default Vue.extend({
           number: (value:any) => {
             return /^\d+$/.test(value) || 'Invalid number'
           },
-          account: (value:any) => value.length == 44 || 'Invalid account address',
+          account: (value:any) => (value.length == 44 || value.length == 43) || 'Invalid account address',
           accounts: (value:any) => {
             for (const account of value.split(",")) {
               if (account.trim().length > 0 && account.trim().length != 44) { 
