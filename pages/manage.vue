@@ -24,16 +24,21 @@
                 Connect Wallet
               </v-btn>
             </template>
-            <v-card>
-              <v-card-title class="text-h5">
+            <v-card color="#11141e">
+              <v-card-title class="white--text text-h5">
                 Choose a Wallet
               </v-card-title>
-              <v-card-text>The wallet will be used as login credentials for your project.</v-card-text>
+              <v-card-text class="white--text">The wallet will be used as login credentials for your project.</v-card-text>
               <v-card-actions>
-                <v-btn color="green darken-1" text @click="connectWallet('phantom')">Phantom</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('solflare')">Solflare</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('slope')">Slope</v-btn>
+                <v-btn block color="#4b34a2" class="white--text" @click="connectWallet('phantom')">Phantom</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#f19a41" class="white--text" @click="connectWallet('solflare')">Solflare</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#6b6bf1" class="white--text" @click="connectWallet('slope')">Slope</v-btn>
               </v-card-actions>
+	      <v-spacer></v-spacer>
             </v-card>
           </v-dialog>
         </div>
@@ -222,20 +227,20 @@
           <v-icon>mdi-check-circle</v-icon> Quota remaining: {{discord_remaining_verifications}}
         </div>
         <div v-if="discord_remaining_verifications == '0'" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.is_holder" class="block text-gray-700 text-sm">
           <v-icon>mdi-check-circle</v-icon> Trait / count based role assignments
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm">
-          <v-icon>mdi-close-circle-outline</v-icon> Trait / count based role assignments (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Trait / count based role assignments (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Sales Tracking</h2>
         <div class="block text-sm mb-2"> 
           <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-check-circle</v-icon> Default Twitter notification bot <a class="hyperlink" href="https://twitter.com/nft4causeBot">@nft4causeBot</a>
+          <v-icon>mdi-check-circle</v-icon> Default Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.$config.twitter_dbot">@{{ this.$config.twitter_dbot }}</a>
         </div>
         <div v-if="this.is_holder && this.discord_webhook" class="block text-gray-700 text-sm mb-2">
           <v-icon>mdi-check-circle</v-icon> Discord notification bot
@@ -244,7 +249,7 @@
           <v-icon>mdi-plus-circle</v-icon> Discord notification bot (add webhook URL above)
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Discord notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Discord notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
         <div v-if="this.$config.twitter_enabled">
           <div v-if="this.is_holder && this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
@@ -254,7 +259,7 @@
             <v-icon>mdi-plus-circle</v-icon> Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
           </div>
           <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-            <v-icon>mdi-close-circle-outline</v-icon> Custom Twitter notification bot (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+            <v-icon>mdi-close-circle-outline</v-icon> Custom Twitter notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
           </div>
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Voting</h2>
@@ -307,7 +312,7 @@
           </div>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a class="hyperlink" href="https://mint.nft4cause.app">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
         </div>
     </div>
   </div>
