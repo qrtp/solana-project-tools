@@ -16,7 +16,7 @@
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-2">What is sales tracking?</h2>
         <div class="block text-gray-700 text-sm mb-2">
-            Sales tracking continuously monitors your NFT collection for new mints and secondary market sales. Whenever activity is detected, we update your collection page and post a message to our community <a href="https://www.twitter.com/NFT4CauseBot">Twitter sales tracking bot</a>. 
+            Sales tracking continuously monitors your NFT collection for new mints and secondary market sales. Whenever activity is detected, we post an update to your collection landing page.
             <br>
             <br>
             If you're an NFT 4 Cause NFT holder, we will also notify channels on your Discord server as well as your project's Twitter account. Custom sales notifications allow your followers to celebrate with you every time your collection exchanges hands.
