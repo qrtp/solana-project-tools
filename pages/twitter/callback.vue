@@ -5,7 +5,7 @@
             <img class="mx-auto" src="/loading.gif">
         </div>
         <div class="block text-gray-700 text-sm mx-auto" v-if="step === 2">
-            ✅ Successfully connected @{{userName}}!
+            <v-icon>mdi-check-circle</v-icon> Successfully connected @{{userName}}!
             <br>
             <br>
             <a href="/manage" class="hyperlink">Back to project</a>

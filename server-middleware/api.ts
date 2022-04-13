@@ -485,7 +485,7 @@ app.post('/updateProject', async (req: any, res: Response) => {
   var projectName = ""
   try {
     var userProject = JSON.parse(await read(getPublicKeyFilePath(req.body.publicKey)))
-    if (!userProject || userProject.projectName != req.body.project) {
+    if (!userProject || userProject == "") {
       logger.info(`address ${req.body.publicKey} does not own a project`)
       return res.sendStatus(401)
     }
