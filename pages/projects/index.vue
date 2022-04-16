@@ -9,21 +9,22 @@
             :headers="headers"
             :items="projects"
             :items-per-page="10"
+            :mobile-breakpoint="200"
           >
             <template #item.project_friendly_name="{ item }">
               <a class="hyperlink" :href="`/${item.project}/sales`">{{ item.project_friendly_name }}</a>
             </template>
             <template #item.is_holder="{ item }">
-              <div v-if="item.is_holder"><v-icon>mdi-hand-coin</v-icon></div>
+              <div v-if="item.is_holder"><v-icon small>mdi-hand-coin</v-icon></div>
             </template>
             <template #item.project_website="{ item }">
-              <a v-if="item.project_website" target="_blank" :href="`${item.project_website}`"><v-icon>mdi-web</v-icon></a>
+              <a v-if="item.project_website" target="_blank" :href="`${item.project_website}`"><v-icon small>mdi-web</v-icon></a>
             </template>
             <template #item.twitter_username="{ item }">
-              <a v-if="item.twitter_username" target="_blank" :href="`https://www.twitter.com/${item.twitter_username}`"><v-icon>mdi-twitter</v-icon></a>
+              <a v-if="item.twitter_username" target="_blank" :href="`https://www.twitter.com/${item.twitter_username}`"><v-icon small>mdi-twitter</v-icon></a>
             </template>
             <template #item.discord_url="{ item }">
-              <a v-if="item.discord_url" target="_blank" :href="`${item.discord_url}`"><v-icon>mdi-discord</v-icon></a>
+              <a v-if="item.discord_url" target="_blank" :href="`${item.discord_url}`"><v-icon small>mdi-discord</v-icon></a>
             </template>
           </v-data-table>
           <v-icon>mdi-hand-coin</v-icon> = NFT 4 Cause <a href="https://mint.nft4cause.app">donation</a>

@@ -84,10 +84,18 @@
               :labels="voteLabels[vote.id]"
               :value="voteResult[vote.id]"
               :gradient="['#E1F5FE','#03A9F4']"
-              auto-line-width=true
-              padding="16"
+              :auto-line-width="true"
+              :padding="16"
               type="bar"
             ></v-sparkline>
+            <v-card-text>
+              <div v-if="voteLegend[vote.id].length > 0" class="font-bold mt-5 mb-1">
+              Legend
+              </div>
+              <div v-for="legend in voteLegend[vote.id]" class="text-xs mb-1">
+                {{legend}}
+              </div>
+            </v-card-text>
           </div>
         </v-card>
       </div>
@@ -138,6 +146,7 @@ export default Vue.extend({
       voteResponse: {},
       voteResult: {},
       voteLabels: {},
+      voteLegend: {},
       voteConfiguration: null
     }
   },
@@ -309,13 +318,24 @@ export default Vue.extend({
           this.voteResult[res.data[i].id] = []
           // @ts-ignore
           this.voteLabels[res.data[i].id] = []
+          // @ts-ignore
+          this.voteLegend[res.data[i].id] = []
           for (var j=0; j < res.data[i].choices.length; j++) {
             // @ts-ignore
             this.voteResult[res.data[i].id].push(res.data[i].choices[j].count)
+            
+            // generate the chart labels
+            var labelText = res.data[i].choices[j].value
+            var labelAcronym = (labelText.split(" ").length > 1) ? labelText.match(/\b(\w)/g).join('').toUpperCase() : labelText
+            var labelCount = res.data[i].choices[j].count
+            var label = `${labelAcronym} (${labelCount})`
             // @ts-ignore
-            if (res.data[i].choices[j].count) {
+            this.voteLabels[res.data[i].id].push(label)
+
+            // create legend if necessary
+            if (labelText != labelAcronym) {
               // @ts-ignore
-              this.voteLabels[res.data[i].id].push(`${res.data[i].choices[j].value} (${res.data[i].choices[j].count})`)
+              this.voteLegend[res.data[i].id].push(`${labelAcronym}=${labelText}`)
             }
           }
         }
