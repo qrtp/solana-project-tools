@@ -1,11 +1,14 @@
 
 const axios = require('axios')
 const { base58_to_binary } = require('base58-js')
+import { Mutex } from 'async-mutex'
+import { AsyncSemaphore } from '../concurrent/semaphore'
 import { getDiscordClient } from '../discord/client'
 import { getLastTransaction } from '../solscan/account'
 import { write } from '../storage/persist'
 import { getConfigFilePath, getHodlerFilePath } from '../verify/paths'
 import { getConfig, getHodlerList } from '../verify/project'
+import { sleep } from './util'
 const { getParsedNftAccountsByOwner } = require('@nfteyez/sol-rayz')
 const nacl = require('tweetnacl')
 const { PublicKey } = require('@solana/web3.js')
@@ -15,6 +18,11 @@ const loggerWithLabel = require('../logger/structured')
  * Configure logging
  */
 const logger = loggerWithLabel("holder")
+
+/**
+ * Configure concurrency
+ */
+const rpcLock = new Mutex()
 
 /**
  * Create HTTP client with 60 second timeout
@@ -45,10 +53,10 @@ export async function getHolderStoredRoles(project: string, walletAddress: strin
     var roles: any = []
     try {
         var hodlerList = await getHodlerList(project)
-        for (let n of hodlerList) {
-            if (n.publicKey == walletAddress) {
-                logger.info(`found stored roles for user ${walletAddress}: ${JSON.stringify(n.roles)}`)
-                roles = n.roles
+        for (let holder of hodlerList) {
+            if (holder.publicKey == walletAddress) {
+                logger.info(`found stored roles for user ${walletAddress}: ${JSON.stringify(holder.roles)}`)
+                roles = holder.roles
                 break
             }
         }
@@ -138,6 +146,15 @@ export async function getHodlerRoles(walletAddress: string, config: any) {
 // validates the current holders are still in good standing
 export async function reloadHolders(project: any) {
 
+    // some general statistics
+    var metrics = {
+        added: 0,
+        removed: 0,
+        skipped: 0,
+        unchanged: 0,
+        error: 0
+    }
+
     // raed only made flag to log destructive changes but not write them
     var readOnly = process.env.DISABLE_REMOVE_ROLES == "true"
     if (readOnly) {
@@ -149,7 +166,13 @@ export async function reloadHolders(project: any) {
     // retrieve config and ensure it is valid
     const config = await getConfig(project)
     if (!config) {
-        return 404
+        return metrics
+    }
+
+    // only reload if the project has successful validations
+    if (config.verifications <= 0) {
+        logger.info(`not yet any verifications for ${project}`)
+        return metrics
     }
 
     // only allow reload on given interval
@@ -158,149 +181,151 @@ export async function reloadHolders(project: any) {
     var lastReloadElapsed = Date.now() - lastReloadMillis
     logger.info(`last reload was ${lastReloadElapsed}ms ago`)
     if (lastReloadElapsed < reloadIntervalMillis) {
-        logger.info(`reload not yet required`)
-        return 200
+        logger.info(`reload not yet required for ${project}`)
+        return metrics
     }
 
     // retrieve discord client
     var startTime = Date.now()
     const client = await getDiscordClient(project)
     if (!client) {
-        return 400
+        logger.info(`client not initialized for ${project}`)
+        return metrics
     }
 
-    // some general statistics
-    var metrics = {
-        added: 0,
-        removed: 0,
-        skipped: 0,
-        unchanged: 0,
-        error: 0
-    }
+    // concurrent holder processing
+    const maxConcurrentHolders = 10
+    var holderQueue = new AsyncSemaphore(maxConcurrentHolders)
 
     // iterate the hodler list
     var updatedHodlerList: any[] = []
     var hodlerList = await getHodlerList(project)
-    for (let n in hodlerList) {
+    for (let h of hodlerList) {
 
-        // the holder to revalidate
-        const holder = hodlerList[n]
+        // holder revalidation function
+        const holderFn = async function (holder: any) {
 
-        try {
-
-            // retrieve last transaction ID
-            var lastTx = await getLastTransaction(holder.publicKey)
-            if (holder.lastTx == lastTx) {
-                logger.info(`holder ${JSON.stringify(holder)} already processed last tx ${lastTx}`)
-                updatedHodlerList.push(holder)
-                metrics.skipped++
-                continue
-            }
-
-            // determine currently held roles
-            var verifiedRoles = await getHodlerRoles(holder.publicKey, config)
-
-            // determine roles to add
-            var rolesToAdd: any[] = []
-            verifiedRoles.forEach(verifiedRole => {
-                var foundRole = false
-                if (holder.roles) {
-                    holder.roles.forEach((holderRole: any) => {
-                        if (holderRole == verifiedRole) {
-                            foundRole = true
-                        }
-                    })
+            try {
+                // retrieve last transaction ID
+                var lastTx = await getLastTransaction(holder.publicKey)
+                if (holder.lastTx == lastTx) {
+                    logger.info(`holder ${JSON.stringify(holder)} already processed last tx ${lastTx}`)
+                    updatedHodlerList.push(holder)
+                    metrics.skipped++
+                    return
                 }
-                if (!foundRole) {
-                    rolesToAdd.push(verifiedRole)
-                }
-            })
 
-            // determine roles to remove
-            var rolesToRemove: any[] = []
-            if (holder.roles) {
-                holder.roles.forEach((holderRole: any) => {
+                // determine currently held roles
+                var verifiedRoles = await getHodlerRoles(holder.publicKey, config)
+
+                // determine roles to add
+                var rolesToAdd: any[] = []
+                verifiedRoles.forEach(verifiedRole => {
                     var foundRole = false
-                    verifiedRoles.forEach(verifiedRole => {
-                        if (holderRole == verifiedRole) {
-                            foundRole = true
-                        }
-                    })
+                    if (holder.roles) {
+                        holder.roles.forEach((holderRole: any) => {
+                            if (holderRole == verifiedRole) {
+                                foundRole = true
+                            }
+                        })
+                    }
                     if (!foundRole) {
-                        rolesToRemove.push(holderRole)
+                        rolesToAdd.push(verifiedRole)
                     }
                 })
-            }
 
-            // update the user's roles
-            if (rolesToAdd.length > 0 || rolesToRemove.length > 0) {
-
-                // audit log for what changes are going to be made
-                logger.info(`holder ${JSON.stringify(holder)} updating roles, add=${JSON.stringify(rolesToAdd)}, remove=${JSON.stringify(rolesToRemove)}`)
-
-                // parse the discord address to remove
-                hodlerList.splice(n, 1)
-                const username = holder.discordName.split('#')[0]
-                const discriminator = holder.discordName.split('#')[1]
-
-                // retrieve server and user records from discord
-                const myGuild = await client.guilds.cache.get(config.discord_server_id)
-                if (!myGuild) {
-                    logger.info(`holder ${JSON.stringify(holder)} error retrieving server information`)
-                    continue
-                }
-                const doer = await myGuild.members.cache.find((member: any) => (member.user.username === username && member.user.discriminator === discriminator))
-                if (!doer) {
-                    logger.info(`holder ${JSON.stringify(holder)} error retrieving user information`)
-                    continue
+                // determine roles to remove
+                var rolesToRemove: any[] = []
+                if (holder.roles) {
+                    holder.roles.forEach((holderRole: any) => {
+                        var foundRole = false
+                        verifiedRoles.forEach(verifiedRole => {
+                            if (holderRole == verifiedRole) {
+                                foundRole = true
+                            }
+                        })
+                        if (!foundRole) {
+                            rolesToRemove.push(holderRole)
+                        }
+                    })
                 }
 
-                // remove the roles that are no longer valid
-                for (var i = 0; i < rolesToRemove.length; i++) {
-                    const role = await myGuild.roles.cache.find((r: any) => r.id === rolesToRemove[i])
-                    if (!role) {
-                        logger.info(`holder ${JSON.stringify(holder)} error retrieving role information ${JSON.stringify(rolesToRemove[i])}`)
-                        continue
+                // update the user's roles
+                if (rolesToAdd.length > 0 || rolesToRemove.length > 0) {
+
+                    // audit log for what changes are going to be made
+                    logger.info(`holder ${JSON.stringify(holder)} updating roles, add=${JSON.stringify(rolesToAdd)}, remove=${JSON.stringify(rolesToRemove)}`)
+
+                    // parse the discord address to remove
+                    const username = holder.discordName.split('#')[0]
+                    const discriminator = holder.discordName.split('#')[1]
+
+                    // retrieve server and user records from discord
+                    const myGuild = await client.guilds.cache.get(config.discord_server_id)
+                    if (!myGuild) {
+                        logger.info(`holder ${JSON.stringify(holder)} error retrieving server information`)
+                        return
                     }
-                    logger.info(`holder ${JSON.stringify(holder)} removing role ${rolesToRemove[i]} on server ${config.discord_server_id}`)
-                    if (!readOnly) {
-                        await doer.roles.remove(role)
+                    const doer = await myGuild.members.cache.find((member: any) => (member.user.username === username && member.user.discriminator === discriminator))
+                    if (!doer) {
+                        logger.info(`holder ${JSON.stringify(holder)} error retrieving user information`)
+                        return
                     }
-                    metrics.removed++
+
+                    // remove the roles that are no longer valid
+                    for (var i = 0; i < rolesToRemove.length; i++) {
+                        const role = await myGuild.roles.cache.find((r: any) => r.id === rolesToRemove[i])
+                        if (!role) {
+                            logger.info(`holder ${JSON.stringify(holder)} error retrieving role information ${JSON.stringify(rolesToRemove[i])}`)
+                            continue
+                        }
+                        logger.info(`holder ${JSON.stringify(holder)} removing role ${rolesToRemove[i]} on server ${config.discord_server_id}`)
+                        if (!readOnly) {
+                            await doer.roles.remove(role)
+                        }
+                        metrics.removed++
+                    }
+
+                    // add the roles that are missing
+                    for (var i = 0; i < rolesToAdd.length; i++) {
+                        const role = await myGuild.roles.cache.find((r: any) => r.id === rolesToAdd[i])
+                        if (!role) {
+                            logger.info(`holder ${JSON.stringify(holder)} error retrieving role information`)
+                            continue
+                        }
+                        logger.info(`holder ${JSON.stringify(holder)} adding role ${rolesToAdd[i]} on server ${config.discord_server_id}`)
+                        await doer.roles.add(role)
+                        metrics.added++
+                    }
+                } else {
+                    // no changes required for this user
+                    logger.info(`no changes required for holder ${JSON.stringify(holder)} revalidation `)
+                    metrics.unchanged++
                 }
 
-                // add the roles that are missing
-                for (var i = 0; i < rolesToAdd.length; i++) {
-                    const role = await myGuild.roles.cache.find((r: any) => r.id === rolesToAdd[i])
-                    if (!role) {
-                        logger.info(`holder ${JSON.stringify(holder)} error retrieving role information`)
-                        continue
-                    }
-                    logger.info(`holder ${JSON.stringify(holder)} adding role ${rolesToAdd[i]} on server ${config.discord_server_id}`)
-                    await doer.roles.add(role)
-                    metrics.added++
+                // update the holder list to include only the verified roles. If there are not any
+                // verified roles then do not include the holder in the updated list at all.
+                if (verifiedRoles.length > 0) {
+                    holder.roles = verifiedRoles
+                    holder.lastTx = lastTx
+                    logger.info(`updating holder list with user ${JSON.stringify(holder)} with verified roles ${JSON.stringify(verifiedRoles)}`)
+                    updatedHodlerList.push(holder)
+                } else {
+                    logger.info(`holder no longer has any roles ${JSON.stringify(holder)}`)
                 }
-            } else {
-                // no changes required for this user
-                logger.info(`no changes required for holder ${JSON.stringify(holder)} revalidation `)
-                metrics.unchanged++
+            } catch (holderErr) {
+                logger.info(`error revalidating holder ${JSON.stringify(holder)}`, holderErr)
+                metrics.error++
             }
-
-            // update the holder list to include only the verified roles. If there are not any
-            // verified roles then do not include the holder in the updated list at all.
-            if (verifiedRoles.length > 0) {
-                holder.roles = verifiedRoles
-                holder.lastTx = lastTx
-                logger.info(`updating holder list with user ${JSON.stringify(holder)} with verified roles ${JSON.stringify(verifiedRoles)}`)
-                updatedHodlerList.push(holder)
-            } else {
-                logger.info(`holder no longer has any roles ${JSON.stringify(holder)}`)
-            }
-        } catch (holderErr) {
-            logger.info(`error revalidating holder ${JSON.stringify(holder)}`, holderErr)
-            metrics.error++
         }
+
+        // schedule to concurrent queue
+        await holderQueue.withLockRunAndForget(() => holderFn(h))
     }
+
+    // wait for holders to complete
+    logger.info(`waiting for ${project} holders ${hodlerList.length} to complete`)
+    await holderQueue.awaitTerminate()
 
     // update the config with current timestamp
     config.lastReload = Date.now()
@@ -315,45 +340,54 @@ export async function reloadHolders(project: any) {
     // write elapsed time and continue
     var reloadElapsed = Date.now() - startTime
     logger.info(`reloaded roles for ${project} in ${reloadElapsed}ms with results ${JSON.stringify(metrics)}`)
-    return 200
+    return metrics
 }
 
 // retrieves the token balance
 async function getTokenBalance(walletAddress: any, tokenMintAddress: any) {
-    const response = await axios({
-        url: `https://api.mainnet-beta.solana.com`,
-        method: "post",
-        headers: { "Content-Type": "application/json" },
-        timeout: defaultHttpTimeout,
-        data: {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "getTokenAccountsByOwner",
-            params: [
-                walletAddress,
-                {
-                    mint: tokenMintAddress,
-                },
-                {
-                    encoding: "jsonParsed",
-                },
-            ],
-        },
-    });
-    if (
-        Array.isArray(response?.data?.result?.value) &&
-        response?.data?.result?.value?.length > 0 &&
-        response?.data?.result?.value[0]?.account?.data?.parsed?.info?.tokenAmount
-            ?.amount > 0
-    ) {
-        return (
-            Number(
-                response?.data?.result?.value[0]?.account?.data?.parsed?.info
-                    ?.tokenAmount?.amount
-            ) / 1000000
-        );
-    } else {
-        return 0;
+
+    // acquire the account query semaphore
+    const release = await rpcLock.acquire()
+    logger.info(`acquired token balance lock`)
+    try {
+        const response = await axios({
+            url: `https://api.mainnet-beta.solana.com`,
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            timeout: defaultHttpTimeout,
+            data: {
+                jsonrpc: "2.0",
+                id: 1,
+                method: "getTokenAccountsByOwner",
+                params: [
+                    walletAddress,
+                    {
+                        mint: tokenMintAddress,
+                    },
+                    {
+                        encoding: "jsonParsed",
+                    },
+                ],
+            },
+        });
+        if (
+            Array.isArray(response?.data?.result?.value) &&
+            response?.data?.result?.value?.length > 0 &&
+            response?.data?.result?.value[0]?.account?.data?.parsed?.info?.tokenAmount
+                ?.amount > 0
+        ) {
+            return (
+                Number(
+                    response?.data?.result?.value[0]?.account?.data?.parsed?.info
+                        ?.tokenAmount?.amount
+                ) / 1000000
+            );
+        } else {
+            return 0;
+        }
+    } finally {
+        logger.info(`releasing token balance lock`)
+        release()
     }
 };
 
@@ -411,13 +445,6 @@ async function getRequiredRoles(config: any) {
     return projectRoles
 }
 
-// method to sleep for N seconds
-function sleep(n: number) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, n * 1000);
-    });
-}
-
 // choose a random number between two values
 function randomIntFromInterval(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min)
@@ -438,7 +465,11 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
     let tokenList
     var maxRetries = 10
     for (var i = 0; i < maxRetries; i++) {
+
+        // gate concurrent threads
+        const release = await rpcLock.acquire()
         try {
+            logger.info(`wallet ${walletAddress} acquired NFT query lock`)
             tokenList = await getParsedNftAccountsByOwner({ publicAddress: walletAddress })
             break
         } catch (e) {
@@ -450,6 +481,9 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
             var backoffSeconds = retryNumber * randomIntFromInterval(1, 5)
             logger.info(`error retrieving wallet ${walletAddress}, retry ${retryNumber} in ${backoffSeconds} seconds`, e)
             await sleep(backoffSeconds)
+        } finally {
+            logger.info(`wallet ${walletAddress} releasing NFT query lock`)
+            release()
         }
     }
 
@@ -466,16 +500,16 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
     // populate the items in the wallet
     if (tokenList) {
 
-        // concurrency control
-        var maxConcurrentMetadata = 25
-        var promises = []
+        // allow up to 25 metadata threads
+        const maxMetadataThreads = 25
+        var metadataQueue = new AsyncSemaphore(maxMetadataThreads)
 
         // iterate the available tokens for this wallet
-        for (let item of tokenList) {
-            if (updateAuthorityList.includes(item.updateAuthority)) {
+        for (let tokenListItem of tokenList) {
+            if (updateAuthorityList.includes(tokenListItem.updateAuthority)) {
 
                 // schedule to the concurrent queue
-                promises.push(async function () {
+                const metadataFn = async function (item: any) {
                     logger.info(`wallet ${walletAddress} item ${item.mint} matches an expected update authority (${JSON.stringify(updateAuthorityList)})`)
                     if (config.roles && config.roles.length > 0 && config.is_holder) {
                         logger.info(`wallet ${walletAddress} retrieving token metadata for ${item.mint}`)
@@ -485,20 +519,16 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
                     }
                     logger.info(`wallet ${walletAddress} adding item to wallet ${JSON.stringify(item)}`)
                     wallet.nfts.push(item)
-                }())
-
-                // throttle concurrency
-                if (promises.length == maxConcurrentMetadata) {
-                    logger.info(`wallet ${walletAddress} waiting for ${promises.length} NFTs to complete processing`)
-                    await Promise.all(promises)
-                    promises = []
                 }
+
+                // schedule to concurrent queue
+                metadataQueue.withLockRunAndForget(() => metadataFn(tokenListItem))
             }
         }
 
         // wait for queue to complete
-        logger.info(`wallet ${walletAddress} waiting for ${promises.length} remaining NFTs to complete processing`)
-        await Promise.all(promises)
+        logger.info(`wallet ${walletAddress} waiting for ${tokenList.length} NFTs to complete processing`)
+        await metadataQueue.awaitTerminate()
     }
 
     // if specified in the config, check for SPL token balance
