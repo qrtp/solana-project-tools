@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser')
 const app = require('express')()
 import { Request, Response } from 'express'
+import { AsyncSemaphore } from './concurrent/semaphore'
 import { getDiscordClient } from './discord/client'
 import morganMiddleware from './logger/morgan'
 import { initializeStorage, read, write } from './storage/persist'
@@ -34,11 +35,21 @@ if (process.env.REVALIDATION_MODE == "true") {
     // start timestamp for monitoring
     var startTimestamp = Date.now()
 
+    // aggregate metrics
+    var metrics = {
+      projects: 0,
+      added: 0,
+      removed: 0,
+      skipped: 0,
+      unchanged: 0,
+      error: 0
+    }
+
     try {
 
-      // concurrency control
-      var maxConcurrentProjects = 1
-      var promises = []
+      // process multiple projects concurrently
+      var maxConcurrentProjects = 10
+      const projectReloadQueue = new AsyncSemaphore(maxConcurrentProjects)
 
       // load projets and validate holders 
       logger.info("loading all projects for holder revalidation")
@@ -46,34 +57,39 @@ if (process.env.REVALIDATION_MODE == "true") {
       logger.info("retrieved projects", allProjects.length)
       for (var i = 0; i < allProjects.length; i++) {
 
-        // schedule to the concurrent queue
-        promises.push(async function () {
+        // revalidate project and aggregate metrics
+        const reloadHodlerFn = async function (projectIndex: any) {
           try {
-            logger.info(`validating project holders: ${allProjects[i]}`)
-            await reloadHolders(allProjects[i])
-          } catch (e1) {
-            logger.info(`error reloading project ${allProjects[i]}`, e1)
-          }
-        }())
 
-        // throttle concurrency
-        if (promises.length == maxConcurrentProjects) {
-          logger.info(`waiting for ${promises.length} projects to complete`)
-          await Promise.all(promises)
-          promises = []
+            // reload the project holders
+            var projectMetrics = await reloadHolders(allProjects[projectIndex])
+
+            // update the aggregate metrics
+            metrics.projects++
+            metrics.added += projectMetrics.added
+            metrics.removed += projectMetrics.removed
+            metrics.skipped += projectMetrics.skipped
+            metrics.unchanged += projectMetrics.unchanged
+            metrics.error += projectMetrics.error
+          } catch (e1) {
+            logger.info(`error reloading project ${allProjects[projectIndex]}`, e1)
+          }
         }
+
+        // schedule to the concurrent queue
+        await projectReloadQueue.withLockRunAndForget(() => reloadHodlerFn(i))
       }
 
       // wait for queue to complete
-      logger.info(`waiting for ${promises.length} remaining projects to complete`)
-      await Promise.all(promises)
+      logger.info(`waiting for ${allProjects.length} projects to complete`)
+      await projectReloadQueue.awaitTerminate()
     } catch (e2) {
       logger.info("error retrieving project list", e2)
     }
 
     // exit the program
     var elapsed = Date.now() - startTimestamp
-    logger.info(`holder revalidation completed in ${elapsed}ms`)
+    logger.info(`holder revalidation completed in ${elapsed}ms, results: ${JSON.stringify(metrics)}`)
     await write(getRevalidationSuccessPath(), Date.now().toString())
     process.exit(0)
   }
@@ -226,8 +242,8 @@ app.get('/getProjectHolders', async (req: Request, res: Response) => {
 app.get('/getProjects', async (req: Request, res: Response) => {
 
   // concurrency control
-  var maxConcurrentProjects = 10
-  var promises = []
+  const maxConcurrentProjects = 10
+  var getProjectQueue = new AsyncSemaphore(maxConcurrentProjects)
 
   // initialize project information
   var allProjects = await getAllProjects()
@@ -252,12 +268,11 @@ app.get('/getProjects', async (req: Request, res: Response) => {
   // iterate all the projects
   for (var i = 0; i < allProjects.length; i++) {
 
-    // schedule to the concurrent queue
-    promises.push(async function () {
+    // render project
+    const getProjectFn = async function (projectIndex: any) {
       try {
-
         // get config and skip if not yet any verifications
-        var project = allProjects[i]
+        var project = allProjects[projectIndex]
         var config = await getConfig(project)
         if (!req.query["all"] && config.verifications < 2) {
           return
@@ -286,19 +301,15 @@ app.get('/getProjects', async (req: Request, res: Response) => {
       } catch (e) {
         logger.info("error rendering project", e)
       }
-    }())
-
-    // throttle concurrency
-    if (promises.length == maxConcurrentProjects) {
-      logger.info(`waiting for ${promises.length} projects to complete`)
-      await Promise.all(promises)
-      promises = []
     }
+
+    // schedule to the concurrent queue
+    await getProjectQueue.withLockRunAndForget(() => getProjectFn(i))
   }
 
   // wait for queue to complete
-  logger.info(`waiting for ${promises.length} remaining projects to complete`)
-  await Promise.all(promises)
+  logger.info(`waiting for ${allProjects.length} projects to complete`)
+  await getProjectQueue.awaitTerminate()
 
   // sort project data by sales and verifications
   projectData.sort((a: any, b: any) => (a.verifications + a.sales < b.verifications + b.sales) ? 1 : ((b.verifications + b.sales < a.verifications + a.sales) ? -1 : 0))
@@ -745,8 +756,8 @@ app.post('/verify', async (req: Request, res: Response) => {
     if (verifiedRoles.length > 0) {
       let hasHodler = false
       var hodlerList = await getHodlerList(req.body.projectName)
-      for (let n of hodlerList) {
-        if (n.discordName === discordName && n.publicKey == publicKeyString) {
+      for (let holder of hodlerList) {
+        if (holder.discordName === discordName && holder.publicKey == publicKeyString) {
           hasHodler = true
         }
       }
