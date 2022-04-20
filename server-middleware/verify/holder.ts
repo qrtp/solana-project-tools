@@ -376,12 +376,11 @@ async function getTokenBalance(walletAddress: any, tokenMintAddress: any) {
             response?.data?.result?.value[0]?.account?.data?.parsed?.info?.tokenAmount
                 ?.amount > 0
         ) {
-            return (
-                Number(
-                    response?.data?.result?.value[0]?.account?.data?.parsed?.info
-                        ?.tokenAmount?.amount
-                ) / 1000000
-            );
+            var val = Number(response?.data?.result?.value[0]?.account?.data?.parsed?.info?.tokenAmount?.amount)
+            var decimals = Number(response?.data?.result?.value[0]?.account?.data?.parsed?.info?.tokenAmount?.decimals)
+            var balance = (decimals && decimals > 0) ? val / Math.pow(10, decimals) : val
+            logger.info(`token ${tokenMintAddress} balance ${balance} (${decimals} decimals)`)
+            return balance
         } else {
             return 0;
         }
@@ -534,11 +533,16 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
     // if specified in the config, check for SPL token balance
     if (splTokenList) {
         for (var i = 0; i < splTokenList.length; i++) {
-            try {
-                wallet.splBalance = await getTokenBalance(walletAddress, splTokenList[i])
-                logger.info(`wallet ${walletAddress} spl token ${splTokenList[i]} balance: ${wallet.splBalance}`)
-            } catch (e) {
-                logger.info("Error getting spl token balance", e)
+            for (var j = 1; j <= maxRetries; j++) {
+                try {
+                    wallet.splBalance = await getTokenBalance(walletAddress, splTokenList[i])
+                    logger.info(`wallet ${walletAddress} spl token ${splTokenList[i]} balance: ${wallet.splBalance}`)
+                    break
+                } catch (e) {
+                    var backoffSeconds = j * randomIntFromInterval(1, 5)
+                    logger.info(`error retrieving spl token balance ${walletAddress}, retry ${j} in ${backoffSeconds} seconds`, e)
+                    await sleep(backoffSeconds)
+                }
             }
         }
     }

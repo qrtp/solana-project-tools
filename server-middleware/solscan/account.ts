@@ -33,12 +33,15 @@ export async function getLastTransaction(walletID: string) {
                 for (let tx of res.data) {
                     logger.info(`located last transaction for wallet ${walletID}: ${tx.txHash}`)
                     fetchValue = tx.txHash
-                    await sleep(1)
                     return
                 }
             }
         } catch (e) {
             logger.info(`ERROR: ${e.code} - ${e.message}`)
+        } finally {
+            // sleep to enforce rate limiting against the solscan
+            // API endpoint
+            await sleep(1)
         }
         logger.info(`unable to find last tx for wallet ${walletID}`)
         fetchValue = ""

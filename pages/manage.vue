@@ -331,6 +331,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import Solflare from '@solflare-wallet/sdk';
+import { PublicKey } from '@solana/web3.js'
 const { binary_to_base58 } = require('base58-js')
 
 export default Vue.extend({
@@ -377,11 +378,21 @@ export default Vue.extend({
           number: (value:any) => {
             return /^\d+$/.test(value) || 'Invalid number'
           },
-          account: (value:any) => (value.length == 44 || value.length == 43) || 'Invalid account address',
+          account: (value:any) => { 
+            try {
+              const address = new PublicKey(value);
+              return PublicKey.isOnCurve(address.toBytes())
+            } catch(e) {
+              return 'Invalid account address'
+            }
+          },
           accounts: (value:any) => {
             for (const account of value.split(",")) {
-              if (account.trim().length > 0 && account.trim().length != 44) { 
-                return `Invalid account ${account}`
+              try {
+                const address = new PublicKey(account);
+                PublicKey.isOnCurve(address.toBytes())
+              } catch(e) {
+                return 'Invalid account address'
               }
             }
             return true

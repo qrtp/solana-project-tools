@@ -48,7 +48,7 @@ if (process.env.REVALIDATION_MODE == "true") {
     try {
 
       // process multiple projects concurrently
-      var maxConcurrentProjects = 15
+      var maxConcurrentProjects = 10
       const projectReloadQueue = new AsyncSemaphore(maxConcurrentProjects)
 
       // load projets and validate holders 
