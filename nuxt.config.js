@@ -9,8 +9,8 @@ export default {
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { content: "NFT 4 Cause | Solana Tools", property: "og:site_name" },
-      { content: "Discord Verification Service", property: "og:title" },
-      { content: "Verify your Solana wallet holds the Discord project's NFT to gain exclusive roles. Service provided by NFT 4 Cause, where every NFT minted or traded on a secondary market is an 80% donation! Everything else funds the development of tools like this to enhance the Solana community.", property: "og:description" },
+      { content: "Free NFT Project Tools", property: "og:title" },
+      { content: "Verify Discord users hold your NFT, sales bots for your social channels, DAO voting and more. Services provided by NFT 4 Cause, where 80% of our proceeds are donated to global nonprofits! Everything else funds the development of tools like this to enhance the Solana community.", property: "og:description" },
       { content: "https://www.nft4cause.app/img/nft4c-governance-token.png", property: "og:image" }
     ],
     link: [

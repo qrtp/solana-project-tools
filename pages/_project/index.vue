@@ -56,23 +56,17 @@
           <v-icon>mdi-check-decagram</v-icon> {{discord_role.name}}
         </div>
       </div>
-      <div class="block text-gray-700 text-sm" v-if="step === 6">
-        Unfortunately your wallet doesn't have the tokens required for validation.
-      </div>
       <div class="block text-gray-700 text-sm" v-if="step === 7">
-        There is currently a problem communicating with the Discord API. Try again later.
+        <v-icon>mdi-alert-octagon</v-icon> {{verificationMessage}}
       </div>
       <div class="block text-gray-700 text-sm" v-if="step === 8">
         Project not found.
       </div>
       <div class="block text-gray-700 text-sm" v-if="step === 9">
-        Exceeded number of free verifications. Ask your project owner to get one of our NFTs to unlock unlimited verifications.
+        Unable to verify your wallet for this project. Try again later or contact your project owner.
       </div>
       <div class="block text-gray-700 text-sm" v-if="step === 10">
         We're having trouble connecting to your wallet. The currently supported wallets are <a class="hyperlink" href="https://phantom.app">Phantom</a>, <a class="hyperlink" href="https://solflare.com">Solflare</a> and <a class="hyperlink" href="https://slope.finance">Slope</a>. When using a mobile device, please ensure the current browser is supported by your wallet.
-      </div>
-      <div class="block text-gray-700 text-sm" v-if="step === 11">
-        We're having trouble finding you on this Discord server. Make sure you've joined the server and verify your role again.
       </div>
       <div class="block text-gray-700 text-sm mt-10" v-if="step > 2">
         <h2 class="block text-gray-700 text-xl font-bold mb-1">What is NFT 4 Cause?</h2>
@@ -101,6 +95,7 @@ export default Vue.extend({
       discordAvatar: '',
       projectName: '',
       projectConfig: {},
+      verificationMessage: '',
       verifiedRoles: [{
         id: '',
         name: ''
@@ -203,10 +198,9 @@ export default Vue.extend({
         console.log(`publicKey=${publicKey}, signature=${signature}`)
 
         // Sends signature to the backend
-        let res2
         try {
           this.step = 12
-          res2 = await axios.post('/api/verify', {
+          let res2 = await axios.post('/api/verify', {
             projectName: this.projectName,
             discordName: this.discordUsername,
             signature: signature,
@@ -215,22 +209,18 @@ export default Vue.extend({
           })
           console.log(`validated roled status ${res2.status} with roles ${JSON.stringify(res2.data)}`)
           if (res2.status == 200) {
-            this.verifiedRoles = res2.data
-            this.step = 5 
-          } else if (res2.status == 500) { 
-            this.step = 7 
+            this.verifiedRoles = res2.data.roles
+            this.step = 5
+            return
           }
+          throw "unexpected response code"
         } catch (e) {
-          console.log(e.toString())
-          if (e.toString().includes("status code 403")) {
-            this.step = 9
-          } else if (e.toString().includes("status code 401")) {
-            this.step = 6
-          } else if (e.toString().includes("status code 404")) {
-            this.step = 11
-          } else {
-            console.log("API ERROR", e)
+          console.log(`error response ${JSON.stringify(e)}`)
+          if (e.response && e.response.data.message) {
+            this.verificationMessage = e.response.data.message
             this.step = 7
+          } else {
+            this.step = 9
           }
         }
       } catch (e2) {
