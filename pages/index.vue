@@ -26,7 +26,7 @@
             We offer these free hosted services because we believe in giving back to the Solana NFT community. Our mission is to enable projects to focus their funds on developing their community and making progress on their roadmap.
         </div>
         <div class="block text-gray-700 text-sm mb-2">
-            At <a class="hyperlink" href="http://www.nft4cause.app">NFT 4 Cause</a> we create socially relevant NFTs to generate funds for global nonprofits. <b>Every NFT minted or traded on the secondary market is an 80% donation!</b> Everything else funds the development of tools like this to enhance the Solana community.
+            At <a class="hyperlink" href="http://www.nft4cause.app">NFT 4 Cause</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-2">Opensource</h2>
         <div class="block text-gray-700 text-sm mb-2">

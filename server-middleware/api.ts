@@ -723,28 +723,41 @@ app.post('/verify', async (req: Request, res: Response) => {
 
   // wallet public key string
   var publicKeyString = req.body.publicKey
+  var rolesAdded: any[] = []
+  var responseData = {
+    success: false,
+    roles: rolesAdded,
+    message: "",
+  }
 
   try {
 
     // retrieve config and ensure it is valid
     const config = await getConfig(req.body.projectName)
     if (!config) {
-      return res.sendStatus(404)
+      var msg = `Project ${req.body.projectName} not found. Check the project name and try again.`
+      logger.info(msg)
+      responseData.message = msg
+      return res.status(404).send(responseData)
     }
 
     // validate free tier not over verification limit
     var maxFreeVerifications = parseInt((process.env.MAX_FREE_VERIFICATIONS) ? process.env.MAX_FREE_VERIFICATIONS : "-1")
     if (!config.is_holder && maxFreeVerifications > 0) {
       if (config.verifications > maxFreeVerifications) {
-        logger.info(`free verifications for ${req.body.projectName} has been reached (${config.verifications})`)
-        return res.sendStatus(403)
+        var msg = `Free verifications for the ${req.body.projectName} project has been reached (${config.verifications}). Upgrade your service to receive unlimited verifications.`
+        logger.info(`wallet ${publicKeyString}: ${msg}`)
+        responseData.message = msg
+        return res.status(403).send(responseData)
       }
     }
 
     // Validates signature sent from client
     if (!isSignatureValid(publicKeyString, req.body.signature, config.message)) {
-      logger.info(`signature invalid for public key ${publicKeyString}`)
-      return res.sendStatus(400)
+      var msg = `Invalid signature for wallet ${publicKeyString}. Sign the requested message with your private key and try again.`
+      logger.info(msg)
+      responseData.message = msg
+      return res.status(400).send(responseData)
     }
 
     // store the discord name from the body
@@ -775,43 +788,70 @@ app.post('/verify', async (req: Request, res: Response) => {
         updatedConfig = true
       }
     } else {
-      logger.info("user not verified: " + publicKeyString)
-      return res.sendStatus(401)
+      var msg = `Wallet ${publicKeyString} does not hold an NFT required by this project. Ensure you connected the correct wallet and try again.`
+      logger.info(msg)
+      responseData.message = msg
+      return res.status(401).send(responseData)
     }
 
     const username = discordName.split('#')[0]
     const discriminator = discordName.split('#')[1]
     const client = await getDiscordClient(req.body.projectName)
     if (!client) {
-      return res.sendStatus(404)
+      var msg = `Discord connection is not setup correctly for the ${req.body.projectName} project. Ensure your Discord server ID (${config.discord_server_id}) is correct along with a valid Discord authentication token in the project configuration. Also verify the "Presence intent" and "Server members intent" options are both enabled for the bot in the Discord Developer Portal.`
+      logger.info(`wallet ${publicKeyString}: ${msg}`)
+      responseData.message = msg
+      return res.status(400).send(responseData)
     }
 
     // Update role
-    var rolesAdded: any[] = []
     const myGuild = await client.guilds.cache.get(config.discord_server_id)
     if (!myGuild) {
-      logger.info(`wallet ${publicKeyString} error retrieving server information`)
-      return res.sendStatus(500)
+      var msg = `Cannot connect to Discord server with ID ${config.discord_server_id}. Ensure your Discord bot is invited to the server.`
+      logger.info(`wallet ${publicKeyString}: ${msg}`)
+      responseData.message = msg
+      return res.status(400).send(responseData)
     }
     const doer = await myGuild.members.cache.find((member: any) => (member.user.username === username && member.user.discriminator === discriminator))
     if (!doer) {
-      logger.info(`wallet ${publicKeyString} error finding user ${discordName} on server ${config.discord_server_id}`)
-      return res.sendStatus(404)
+      var msg = `Cannot find user ${discordName} on server ${config.discord_server_id}.`
+      if (config.discord_url) {
+        msg = `${msg} Join the server (${config.discord_url}) and try again.`
+      }
+      logger.info(`wallet ${publicKeyString}: ${msg}`)
+      responseData.message = msg
+      return res.status(404).send(responseData)
     }
     for (var i = 0; i < verifiedRoles.length; i++) {
-      const role = await myGuild.roles.cache.find((r: any) => r.id === verifiedRoles[i])
-      if (!role) {
-        logger.info(`wallet ${publicKeyString} error retrieving role information ${verifiedRoles[i]}`)
-        continue
+
+      // find the role on the discord server
+      var role: any
+      try {
+        role = await myGuild.roles.cache.find((r: any) => r.id === verifiedRoles[i])
+        if (!role) {
+          throw "role not found"
+        }
+      } catch (e) {
+        var msg = `Unable to find Discord role ${verifiedRoles[i]} on server ${config.discord_server_id}. Verify the role exists and try again.`
+        logger.info(`wallet ${publicKeyString}: ${msg}`, e)
+        responseData.message = msg
+        return res.status(404).send(responseData)
       }
 
       // add role to user account
-      await doer.roles.add(role)
-      logger.info(`wallet ${publicKeyString} successfully added user ${discordName} role ${verifiedRoles[i]}`)
-      rolesAdded.push({
-        id: verifiedRoles[i],
-        name: role.name
-      })
+      try {
+        await doer.roles.add(role)
+        logger.info(`wallet ${publicKeyString} successfully added user ${discordName} role ${verifiedRoles[i]}`)
+        rolesAdded.push({
+          id: verifiedRoles[i],
+          name: role.name
+        })
+      } catch (e) {
+        var msg = `Unable to assign Discord role ${verifiedRoles[i]} on server ${config.discord_server_id}. Ensure your bot is listed above role ${verifiedRoles[i]} in your Discord roles configuration.`
+        logger.info(`wallet ${publicKeyString}: ${msg}`, e)
+        responseData.message = msg
+        return res.status(400).send(responseData)
+      }
 
       // save name of role if it has changed
       try {
@@ -824,7 +864,8 @@ app.post('/verify', async (req: Request, res: Response) => {
           updatedConfig = true
         }
       } catch (e) {
-        logger.info("error storing role name", e)
+        // not an error to expose to user
+        logger.info(`wallet ${publicKeyString} error storing role name`, e)
       }
     }
 
@@ -835,10 +876,14 @@ app.post('/verify', async (req: Request, res: Response) => {
 
     // write result and return successfully
     await write(getHodlerFilePath(req.body.projectName), JSON.stringify(hodlerList))
-    res.json(rolesAdded)
+    responseData.success = true
+    responseData.roles = rolesAdded
+    responseData.message = "success"
+    return res.status(200).send(responseData)
   } catch (e) {
     logger.info(`error processing wallet ${publicKeyString}`, e)
-    res.sendStatus(500)
+    responseData.message = `Error assigning Discord role: ${e}`
+    return res.status(500).send(responseData)
   }
 })
 
