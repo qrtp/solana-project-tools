@@ -388,6 +388,9 @@ export default Vue.extend({
           },
           accounts: (value:any) => {
             for (const account of value.split(",")) {
+              if (account == "") {
+                continue
+              }
               try {
                 const address = new PublicKey(account);
                 PublicKey.isOnCurve(address.toBytes())
