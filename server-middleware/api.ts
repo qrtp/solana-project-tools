@@ -222,7 +222,7 @@ app.get('/getProjectSales', async (req: Request, res: Response) => {
     if (!config) {
       return res.sendStatus(404)
     }
-    return res.json(JSON.parse(await read(getSalesFilePath(config.update_authority))))
+    return res.json(JSON.parse(await read(getSalesFilePath(config.owner_public_key))))
   } catch (e) {
     logger.info("error querying project sales", e)
     return res.json([])
