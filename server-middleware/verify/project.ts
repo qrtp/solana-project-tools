@@ -68,8 +68,8 @@ export async function removeProject(name: any) {
         await remove(getConfigFilePath(name))
         await remove(getHodlerFilePath(name))
         await remove(getVoteFilePath(name))
-        await remove(getSalesFilePath(updateAuthority))
-        await remove(getSalesAuditFilePath(updateAuthority))
+        await remove(getSalesFilePath(ownerPublicKey))
+        await remove(getSalesAuditFilePath(ownerPublicKey))
         await remove(getPublicKeyFilePath(ownerPublicKey))
         return true
     } catch (e) {

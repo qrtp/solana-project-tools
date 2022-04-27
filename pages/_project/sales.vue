@@ -8,7 +8,7 @@
       </div>
       <div class="block text-gray-700 text-sm" v-if="step === 3"> 
         <h2 class="block text-gray-700 text-2xl font-bold mb-5">{{projectName}} Sales</h2>
-        <div class="flex flex-wrap -mx-4 -mb-8">
+        <div class="flex flex-wrap -mx-4 mb-8">
           <div v-if="this.sales.length == 0" class="px-4 mb-8">Watching for sales, but have not detected any so far!</div>
           <div v-for="sale in sales" class="md:w-1/3 px-4 mb-8"> 
             <a :href="sale.data.nftInfo.mintLink">
@@ -21,12 +21,20 @@
               {{sale.data.relativeTime}}
             </div>
           </div>
+          <div v-if="this.totalPages > 1" class="flex items-center justify-center mb-4">
+            <v-pagination
+              v-model="currentPage"
+              :length="totalPages"
+              :total-visible="7"
+              @input="handlePageChange"
+            ></v-pagination>
+          </div>
         </div>
       </div>
       <div class="block text-gray-700 text-sm mt-5" v-if="step > 2">
-        <h2 class="block text-gray-700 text-lg font-bold mb-2">What is {{ this.$config.project_name }}?</h2>
+        <h2 class="block text-gray-700 text-lg font-bold mb-2">{{ this.$config.project_name }}?</h2>
         <div class="block text-gray-700 text-sm mb-2">
-        At <a class="hyperlink" :href="this.$config.about_url">{{ this.$config.project_name }}</a> we create socially relevant NFTs to generate funds for global nonprofits. <b>Every NFT minted or traded on a secondary market is an 80% donation!</b> Everything else funds the development of tools like this to enhance the Solana community.
+        At <a class="hyperlink" :href="this.$config.about_url">{{ this.$config.project_name }}</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
         </div>
       </div>
   </div>
@@ -42,10 +50,13 @@ export default Vue.extend({
     return { 
       step: 1,
       projectName: '',
+      currentPage: 1,
+      salesPerPage: 9,
+      totalPages: 1,
+      allSales: [],
       sales: []
     }
   },
-
   async mounted() {
 
     // Retrieve the project config based on wildcard path
@@ -70,7 +81,9 @@ export default Vue.extend({
       }
 
       // render the properties
-      this.sales = projectSales.data.sales.reverse()
+      this.allSales = projectSales.data.sales.reverse()
+      this.totalPages = Math.ceil(this.allSales.length/this.salesPerPage)
+      this.renderPage()
     } catch (e) {
       console.log(e) 
     }
@@ -83,6 +96,23 @@ export default Vue.extend({
 
     // load the sales data
     this.step = 3
+  },
+  methods: {
+    handlePageChange(value:any) {
+      this.currentPage = value;
+      this.renderPage()
+    },
+    renderPage() {
+      console.log(`rendering sales page ${this.currentPage} of ${this.allSales.length} items`)
+      this.sales = []
+      var pageIndex = this.currentPage-1
+      var startIndex = pageIndex * this.salesPerPage
+      var endIndex = (pageIndex+1) * this.salesPerPage
+      for (var i=startIndex; i < endIndex && i < this.allSales.length; i++) {
+        console.log(`showing item ${i} on page`)
+        this.sales.push(this.allSales[i])
+      }
+    }
   }
 })
 </script>

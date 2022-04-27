@@ -84,7 +84,7 @@ export async function getDiscordClient(projectName: any) {
 
         // wait for client to be ready
         logger.info(`waiting for ${projectName} client to initialize`)
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 25; i++) {
             if (await newClient.guilds.cache.get(config.discord_server_id)) {
                 logger.info(`${projectName} client is ready!`)
 

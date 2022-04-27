@@ -7,7 +7,6 @@
         <a href="https://github.com/qrtp/solana-project-tools"><v-icon>mdi-github</v-icon></a>
     </div>
 </template>
-
 <style>
     .twitter { 
         text-align: center; 

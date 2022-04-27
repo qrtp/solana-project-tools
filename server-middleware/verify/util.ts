@@ -26,3 +26,10 @@ export function getFieldValue(v: string) {
     }
     return sanitizedVal
 }
+
+// method to sleep for N seconds
+export function sleep(n: number) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, n * 1000);
+    });
+}

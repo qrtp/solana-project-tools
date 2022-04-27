@@ -24,7 +24,7 @@
                 Connect Wallet
               </v-btn>
             </template>
-            <v-card color="#11141e">
+		<v-card color="#11141e">
               <v-card-title class="white--text text-h5">
                 Choose a Wallet
               </v-card-title>
@@ -162,7 +162,7 @@
             <v-card-text>
               <v-text-field
                 hint="The Discord webhook URL to notify every time we detect your project NFT sales."
-                v-model="discord_webhook" label="Discord webhook URL" type="password" :rules="[rules.required, rules.maxcount]"></v-text-field>
+                v-model="discord_webhook" label="Discord webhook URL" type="password"></v-text-field>
             </v-card-text>
           </v-card>
         </div>
@@ -227,20 +227,17 @@
           <v-icon>mdi-check-circle</v-icon> Quota remaining: {{discord_remaining_verifications}}
         </div>
         <div v-if="discord_remaining_verifications == '0'" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Quota remaining: {{discord_remaining_verifications}} (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Quota remaining: {{discord_remaining_verifications}} (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
         </div>
         <div v-if="this.is_holder" class="block text-gray-700 text-sm">
           <v-icon>mdi-check-circle</v-icon> Trait / count based role assignments
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm">
-          <v-icon>mdi-close-circle-outline</v-icon> Trait / count based role assignments (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Trait / count based role assignments (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Sales Tracking</h2>
         <div class="block text-sm mb-2"> 
           <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url+'/sales'">{{discord_redirect_url}}/sales</a>
-        </div>
-        <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-check-circle</v-icon> Default Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.$config.twitter_dbot">@{{ this.$config.twitter_dbot }}</a>
         </div>
         <div v-if="this.is_holder && this.discord_webhook" class="block text-gray-700 text-sm mb-2">
           <v-icon>mdi-check-circle</v-icon> Discord notification bot
@@ -249,17 +246,17 @@
           <v-icon>mdi-plus-circle</v-icon> Discord notification bot (add webhook URL above)
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Discord notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Discord notification bot (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
         </div>
         <div v-if="this.$config.twitter_enabled">
           <div v-if="this.is_holder && this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            <v-icon>mdi-check-circle</v-icon> Custom Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
+            <v-icon>mdi-check-circle</v-icon> Twitter notification bot <a class="hyperlink" :href="'https://twitter.com/'+this.connected_twitter_name">@{{this.connected_twitter_name}}</a> (<a class="hyperlink" href="/api/twitter">update</a>)
           </div>
           <div v-if="this.is_holder && !this.connected_twitter_name" class="block text-gray-700 text-sm mb-2">
-            <v-icon>mdi-plus-circle</v-icon> Custom Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
+            <v-icon>mdi-plus-circle</v-icon> Twitter notification bot (<a class="hyperlink" href="/api/twitter">connect</a>)
           </div>
           <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-            <v-icon>mdi-close-circle-outline</v-icon> Custom Twitter notification bot (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+            <v-icon>mdi-close-circle-outline</v-icon> Twitter notification bot (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
           </div>
         </div>
         <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">Voting</h2>
@@ -312,8 +309,25 @@
           </div>
         </div>
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
-          <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a class="hyperlink" :href="this.$config.upgrade_url">unlock</a>)
+          <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
         </div>
+        <v-dialog
+          v-model="unlockDialog"
+          persistent
+          max-width="350"
+        >
+          <v-card>
+            <v-card-title class="text-h5">
+              Unlock premium features
+            </v-card-title>
+            <v-card-text>Minting our NFT (1 SOL) unlocks all premium features, and is also a donation to charity.</v-card-text>
+            <v-card-text>If you decide to make a donation, make sure to use the wallet managing this project. Simply return to this page and "Save" the project to upgrade the available features.</v-card-text>
+            <v-card-actions>
+              <v-btn color="green darken-1" text :href="this.$config.upgrade_url">Mint</v-btn>
+              <v-btn color="green darken-1" text @click="unlockDialog=false">Cancel</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
     </div>
   </div>
 </template>
@@ -322,6 +336,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import Solflare from '@solflare-wallet/sdk';
+import { PublicKey } from '@solana/web3.js'
 const { binary_to_base58 } = require('base58-js')
 
 export default Vue.extend({
@@ -329,6 +344,7 @@ export default Vue.extend({
     var defaultRoles: any[] = []
     return {
       voteDialog: false,
+      unlockDialog: false,
       invalidForm: false,
       discordUsername: '',
       step: 0,
@@ -367,11 +383,24 @@ export default Vue.extend({
           number: (value:any) => {
             return /^\d+$/.test(value) || 'Invalid number'
           },
-          account: (value:any) => value.length == 44 || 'Invalid account address',
+          account: (value:any) => { 
+            try {
+              const address = new PublicKey(value);
+              return PublicKey.isOnCurve(address.toBytes())
+            } catch(e) {
+              return 'Invalid account address'
+            }
+          },
           accounts: (value:any) => {
             for (const account of value.split(",")) {
-              if (account.trim().length > 0 && account.trim().length != 44) { 
-                return `Invalid account ${account}`
+              if (account == "") {
+                continue
+              }
+              try {
+                const address = new PublicKey(account);
+                PublicKey.isOnCurve(address.toBytes())
+              } catch(e) {
+                return 'Invalid account address'
               }
             }
             return true

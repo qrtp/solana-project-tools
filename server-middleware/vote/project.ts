@@ -165,7 +165,7 @@ export async function getProjectVotesForUser(project: string, publicKey: string)
     }
 
     // sort by vote expiry time
-    returnVotes.sort((a: any, b: any) => (a.expiryTime > b.expiryTime) ? 1 : (b.expiryTime > a.expiryTime) ? -1 : 0)
+    returnVotes.sort((b: any, a: any) => (a.expiryTime > b.expiryTime) ? 1 : (b.expiryTime > a.expiryTime) ? -1 : 0)
 
     // votes successfully retrieved
     return returnVotes
