@@ -38,6 +38,22 @@ export function isSignatureValid(publicKeyString: string, signature: any, messag
     return nacl.sign.detached.verify(encodedMessage, encryptedSignature, publicKey)
 }
 
+// returns true if the provided wallet is used to manage the project
+export function isProjectWallet(walletAddress: string, config: any) {
+    switch (walletAddress) {
+        case config.update_authority:
+            logger.info(`wallet ${walletAddress} matches update authority account address`)
+            return true
+        case config.royalty_wallet_id:
+            logger.info(`wallet ${walletAddress} matches royalty account address`)
+            return true
+        case config.owner_public_key:
+            logger.info(`wallet ${walletAddress} matches owner account address`)
+            return true
+    }
+    return false
+}
+
 // attempts to retrieve previously stored roles and falls back to on-chain query if no roles
 // can be found locally
 export async function getHodlerRolesWithFallback(project: string, walletAddress: string, config: any) {
@@ -206,6 +222,15 @@ export async function reloadHolders(project: any) {
         const holderFn = async function (holder: any) {
 
             try {
+
+                // skip if the wallet address is associated with the project
+                if (isProjectWallet(holder.publicKey, config)) {
+                    logger.info(`holder ${JSON.stringify(holder)} wallet associated with project`)
+                    updatedHodlerList.push(holder)
+                    metrics.skipped++
+                    return
+                }
+
                 // retrieve last transaction ID
                 var lastTx = await getLastTransaction(holder.publicKey)
                 if (holder.lastTx == lastTx) {
