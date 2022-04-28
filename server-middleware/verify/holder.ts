@@ -197,9 +197,13 @@ export async function reloadHolders(project: any) {
     var lastReloadElapsed = Date.now() - lastReloadMillis
     logger.info(`last reload was ${lastReloadElapsed}ms ago`)
     if (lastReloadElapsed < reloadIntervalMillis) {
-        logger.info(`reload not yet required for ${project}`)
+        logger.info(`reload not currently required for ${project}`)
         return metrics
     }
+
+    // update the config with current timestamp
+    config.lastReload = Date.now()
+    await write(getConfigFilePath(project), JSON.stringify(config))
 
     // retrieve discord client
     var startTime = Date.now()
@@ -350,11 +354,7 @@ export async function reloadHolders(project: any) {
 
     // wait for holders to complete
     logger.info(`waiting for ${project} holders ${hodlerList.length} to complete`)
-    await holderQueue.awaitTerminate()
-
-    // update the config with current timestamp
-    config.lastReload = Date.now()
-    await write(getConfigFilePath(project), JSON.stringify(config))
+    await holderQueue.awaitTerminate() 
 
     // update the hodler file and return successfully
     if (!readOnly) {
