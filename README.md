@@ -13,7 +13,7 @@ Additional services offered in the project tools suite:
 Full documentation of the service features can be found on our [wiki](https://github.com/qrtp/solana-project-tools/wiki). For any questions message me on twitter [@NFT4Cause](https://twitter.com/nft4cause).
 
 # Hosted service
-We offer this project as a free hosted service at [https://verify.4cause.app](https://verify.4cause.app). Feel free to register your project on our highly available deployment across IBM Cloud and Google Cloud.
+We offer this project as a free hosted service at [https://verify.4cause.app](https://verify.4cause.app). Feel free to register your project on our highly available deployment across IBM and Google Clouds.
 
 ## Demonstration video
 Want to see it in action? There's a [live demo on YouTube](https://www.youtube.com/watch?v=QFRDIN4athM) showing how our hosted service can be used to verify users for any Solana NFT project and assign Discord roles to a specified server.
