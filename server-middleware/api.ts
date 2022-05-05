@@ -230,11 +230,37 @@ app.get('/getProjectSales', async (req: Request, res: Response) => {
 })
 
 // Endpoint to get all holders for given project
-app.get('/getProjectHolders', async (req: Request, res: Response) => {
+app.get('/getProjectHolders', sessionMiddleware, async (req: any, res: Response) => {
+
+  // ensure user has valid session
+  var sessionPublicKey = ""
+  if (req.session) {
+    if (req.session.publicKey && req.session.signature) {
+      logger.info(`found connected wallet address ${req.session.publicKey}`)
+      sessionPublicKey = req.session.publicKey
+    }
+  }
+  if (!sessionPublicKey) {
+    logger.info("user not authenticated")
+    return res.sendStatus(401)
+  }
+
+  // ensuure the user owns the project
   var config = await getConfig(req.query["project"])
   if (config) {
+    if (config.owner_public_key != sessionPublicKey) {
+      logger.info(`user ${sessionPublicKey} does not own project ${req.query["project"]}`)
+      return res.sendStatus(403)
+    }
+    if (!config.is_holder) {
+      logger.info(`project ${req.query["project"]} is not premium`)
+      return res.sendStatus(403)
+    }
     return res.json(await getHodlerList(req.query["project"]))
   }
+
+  // project not found
+  logger.info(`project ${req.query["project"]} not found`)
   return res.sendStatus(404)
 })
 
