@@ -306,6 +306,15 @@
         <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
           <v-icon>mdi-close-circle-outline</v-icon> Holder only voting service (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
         </div>
+        <h2 class="block text-gray-700 text-xl font-bold mb-2 mt-5">User Snapshots</h2>
+        <div v-if="this.is_holder">
+          <div class="block text-gray-700 text-sm mb-2">
+            <v-icon>mdi-check-circle</v-icon> <a class=hyperlink :href="this.discord_redirect_url+'/users'">{{discord_redirect_url}}/users</a>
+          </div>
+        </div>
+        <div v-if="!this.is_holder" class="block text-gray-700 text-sm mb-2">
+          <v-icon>mdi-close-circle-outline</v-icon> Holder snapshot (<a href="#" @click="unlockDialog=true"><v-icon small>mdi-lock-open-variant-outline</v-icon> unlock</a>)
+        </div>
         <v-dialog
           v-model="unlockDialog"
           persistent
