@@ -27,7 +27,7 @@
               <a v-if="item.discord_url" target="_blank" :href="`${item.discord_url}`"><v-icon small>mdi-discord</v-icon></a>
             </template>
           </v-data-table>
-          <v-icon>mdi-hand-coin</v-icon> = NFT 4 Cause <a href="https://mint.nft4cause.app">donation</a>
+          <v-icon>mdi-hand-coin</v-icon> = {{ this.$config.project_name }} <a :href="this.$config.upgrade_url">donation</a>
       </div>
       <div class="block text-gray-700 text-sm mx-auto" v-if="step === 2">
         <div class="block text-gray-700 text-sm mb-2">

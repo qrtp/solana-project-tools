@@ -24,16 +24,21 @@
                 Connect Wallet
               </v-btn>
             </template>
-            <v-card>
-              <v-card-title class="text-h5">
+		<v-card color="#11141e">
+              <v-card-title class="white--text text-h5">
                 Choose a Wallet
               </v-card-title>
-              <v-card-text>The wallet will be used as login credentials for your project.</v-card-text>
+              <v-card-text class="white--text">The wallet will be used as login credentials for your project.</v-card-text>
               <v-card-actions>
-                <v-btn color="green darken-1" text @click="connectWallet('phantom')">Phantom</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('solflare')">Solflare</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('slope')">Slope</v-btn>
+                <v-btn block color="#4b34a2" class="white--text" @click="connectWallet('phantom')">Phantom</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#f19a41" class="white--text" @click="connectWallet('solflare')">Solflare</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#6b6bf1" class="white--text" @click="connectWallet('slope')">Slope</v-btn>
               </v-card-actions>
+	      <v-spacer></v-spacer>
             </v-card>
           </v-dialog>
         </div>
@@ -327,7 +332,7 @@
             <v-card-text>Minting our NFT (1 SOL) unlocks all premium features, and is also a donation to charity.</v-card-text>
             <v-card-text>If you decide to make a donation, make sure to use the wallet managing this project. Simply return to this page and "Save" the project to upgrade the available features.</v-card-text>
             <v-card-actions>
-              <v-btn color="green darken-1" text href="https://mint.nft4cause.app">Mint</v-btn>
+              <v-btn color="green darken-1" text :href="this.$config.upgrade_url">Mint</v-btn>
               <v-btn color="green darken-1" text @click="unlockDialog=false">Cancel</v-btn>
             </v-card-actions>
           </v-card>

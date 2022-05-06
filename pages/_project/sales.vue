@@ -32,9 +32,9 @@
         </div>
       </div>
       <div class="block text-gray-700 text-sm mt-5" v-if="step > 2">
-        <h2 class="block text-gray-700 text-lg font-bold mb-2">What is NFT 4 Cause?</h2>
+        <h2 class="block text-gray-700 text-lg font-bold mb-2">{{ this.$config.project_name }}?</h2>
         <div class="block text-gray-700 text-sm mb-2">
-        At <a class="hyperlink" href="http://www.nft4cause.app">NFT 4 Cause</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
+        At <a class="hyperlink" :href="this.$config.about_url">{{ this.$config.project_name }}</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
         </div>
       </div>
   </div>

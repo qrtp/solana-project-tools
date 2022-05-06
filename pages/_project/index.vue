@@ -27,16 +27,21 @@
                 Connect Wallet
               </v-btn>
             </template>
-            <v-card>
-              <v-card-title class="text-h5">
+             <v-card color="#11141e">
+              <v-card-title class="white--text text-h5">
                 Choose a Wallet
               </v-card-title>
-              <v-card-text>The wallet will be inspected to verify the project's NFT requirements.</v-card-text>
+              <v-card-text class="white--text">The wallet will be used as login credentials for your project.</v-card-text>
               <v-card-actions>
-                <v-btn color="green darken-1" text @click="connectWallet('phantom')">Phantom</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('solflare')">Solflare</v-btn>
-                <v-btn color="green darken-1" text @click="connectWallet('slope')">Slope</v-btn>
+                <v-btn block color="#4b34a2" class="white--text" @click="connectWallet('phantom')">Phantom</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#f19a41" class="white--text" @click="connectWallet('solflare')">Solflare</v-btn>
+	      </v-card-actions>
+              <v-card-actions>
+                <v-btn block color="#6b6bf1" class="white--text" @click="connectWallet('slope')">Slope</v-btn>
               </v-card-actions>
+	      <v-spacer></v-spacer>
             </v-card>
           </v-dialog>
         </div>
@@ -69,13 +74,13 @@
         We're having trouble connecting to your wallet. The currently supported wallets are <a class="hyperlink" href="https://phantom.app">Phantom</a>, <a class="hyperlink" href="https://solflare.com">Solflare</a> and <a class="hyperlink" href="https://slope.finance">Slope</a>. When using a mobile device, please ensure the current browser is supported by your wallet.
       </div>
       <div class="block text-gray-700 text-sm mt-10" v-if="step > 2">
-        <h2 class="block text-gray-700 text-xl font-bold mb-1">What is NFT 4 Cause?</h2>
+        <h2 class="block text-gray-700 text-xl font-bold mb-1">What is {{ this.$config.project_name }}?</h2>
         <div class="block text-gray-700 text-sm mb-5">
-        At <a class="hyperlink" href="http://www.nft4cause.app">NFT 4 Cause</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
+        At <a class="hyperlink" :href="this.$config.about_url">{{ this.$config.project_name }}</a> we create socially relevant NFTs and <b>donate 80% of our proceeds to global nonprofits</b> chosen by our holders! Everything else funds the development of free tools like this to enhance the Solana community.
         </div>
         <h2 class="block text-gray-700 text-lg font-bold mb-1">Join the #CryptoForGood conversation</h2>
         <div>
-        Connect with us <a href="https://www.twitter.com/NFT4Cause">@NFT4Cause</a> 
+        Connect with us <a :href="'https://twitter.com/'+this.$config.twitter_handle">@{{ this.$config.twitter_handle }}</a> 
         </div>
       </div> 
   </div>
