@@ -57,29 +57,36 @@ export function isProjectWallet(walletAddress: string, config: any) {
 // attempts to retrieve previously stored roles and falls back to on-chain query if no roles
 // can be found locally
 export async function getHodlerRolesWithFallback(project: string, walletAddress: string, config: any) {
-    var roles = await getHolderStoredRoles(project, walletAddress)
-    if (!roles || roles.length == 0) {
-        roles = await getHodlerRoles(walletAddress, config)
+    var holder = await getHolderStoredRoles(project, walletAddress)
+    if (!holder || holder.roles.length == 0) {
+        holder = await getHodlerRoles(walletAddress, config)
     }
-    return roles
+    return holder
 }
 
 // determines holder roles from previously stored values
 export async function getHolderStoredRoles(project: string, walletAddress: string) {
     var roles: any = []
+    var donations = 0
     try {
         var hodlerList = await getHodlerList(project)
         for (let holder of hodlerList) {
             if (holder.publicKey == walletAddress) {
                 logger.info(`found stored roles for user ${walletAddress}: ${JSON.stringify(holder.roles)}`)
                 roles = holder.roles
+                if (holder.donations) {
+                    donations = holder.donations
+                }
                 break
             }
         }
     } catch (e) {
         logger.info("error retrieving holder roles", e)
     }
-    return roles
+    return {
+        roles: roles,
+        donations: donations
+    }
 }
 
 // determines if the holder is verified
@@ -156,7 +163,12 @@ export async function getHodlerRoles(walletAddress: string, config: any) {
     }
     var elapsedTime = Date.now() - startTime
     logger.info(`wallet ${walletAddress} has roles ${JSON.stringify(userRoles)} (${elapsedTime}ms)`)
-    return userRoles
+
+    // create the return struct
+    return {
+        roles: userRoles,
+        donations: wallet.donations
+    }
 }
 
 // validates the current holders are still in good standing
@@ -168,6 +180,7 @@ export async function reloadHolders(project: any) {
         removed: 0,
         skipped: 0,
         unchanged: 0,
+        donations: 0,
         error: 0
     }
 
@@ -232,6 +245,7 @@ export async function reloadHolders(project: any) {
                     logger.info(`holder ${JSON.stringify(holder)} wallet associated with project`)
                     updatedHodlerList.push(holder)
                     metrics.skipped++
+                    metrics.donations += holder.donations
                     return
                 }
 
@@ -241,11 +255,17 @@ export async function reloadHolders(project: any) {
                     logger.info(`holder ${JSON.stringify(holder)} already processed last tx ${lastTx}`)
                     updatedHodlerList.push(holder)
                     metrics.skipped++
+                    metrics.donations += holder.donations
                     return
                 }
 
                 // determine currently held roles
-                var verifiedRoles = await getHodlerRoles(holder.publicKey, config)
+                var verifiedHolder = await getHodlerRoles(holder.publicKey, config)
+                var verifiedRoles = verifiedHolder.roles
+
+                // determine donations received by wallet
+                metrics.donations += verifiedHolder.donations
+                holder.donations = verifiedHolder.donations
 
                 // determine roles to add
                 var rolesToAdd: any[] = []
@@ -360,6 +380,11 @@ export async function reloadHolders(project: any) {
     if (!readOnly) {
         logger.info(`updating ${project} holder list with ${updatedHodlerList.length} users`)
         await write(getHodlerFilePath(project), JSON.stringify(updatedHodlerList))
+
+        // update the config with current timestamp
+        logger.info(`updating ${project} config with ${metrics.donations} donations`)
+        config.donations = metrics.donations
+        await write(getConfigFilePath(project), JSON.stringify(config))
     }
 
     // write elapsed time and continue
@@ -482,7 +507,8 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
     let nfts: any[] = [];
     let wallet = {
         nfts: nfts,
-        splBalance: 0
+        splBalance: 0,
+        donations: 0,
     }
 
     // Parses all tokens from the requested wallet address public key
@@ -530,6 +556,8 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
 
         // iterate the available tokens for this wallet
         for (let tokenListItem of tokenList) {
+
+            // does the NFT match a project update authority
             if (updateAuthorityList.includes(tokenListItem.updateAuthority)) {
 
                 // schedule to the concurrent queue
@@ -547,6 +575,12 @@ export async function getHodlerWallet(walletAddress: string, config: any) {
 
                 // schedule to concurrent queue
                 metadataQueue.withLockRunAndForget(() => metadataFn(tokenListItem))
+            }
+
+            // does the NFT match the donation update authority
+            if (tokenListItem.updateAuthority == process.env.UPDATE_AUTHORITY) {
+                logger.info(`wallet ${walletAddress} contains donation NFT`)
+                wallet.donations++
             }
         }
 

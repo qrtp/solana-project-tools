@@ -48,7 +48,8 @@ export async function castVote(project: string, id: string, publicKey: string, v
     }
 
     // ensure user has valid role in this project
-    var verifiedRoles = await getHodlerRolesWithFallback(project, publicKey, config)
+    var verifiedHolder = await getHodlerRolesWithFallback(project, publicKey, config)
+    var verifiedRoles = verifiedHolder.roles
     if (verifiedRoles.length == 0) {
         logger.info("user not verified: " + publicKey)
         return false

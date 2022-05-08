@@ -315,7 +315,8 @@ app.get('/getProjects', async (req: Request, res: Response) => {
           connected_twitter_name: config.connected_twitter_name,
           is_holder: config.is_holder,
           verifications: config.verifications,
-          sales: (config.sales) ? config.sales : 0
+          sales: (config.sales) ? config.sales : 0,
+          donations: (config.donations) ? config.donations : 0
         }
         projectData.push(data)
         if (config.is_holder) {
@@ -437,7 +438,7 @@ app.post('/createProject', async (req: any, res: Response) => {
     update_authority: process.env.UPDATE_AUTHORITY,
     spl_token: process.env.SPL_TOKEN
   })
-  var isHolder = holderRoles.length > 0
+  var isHolder = holderRoles.roles.length > 0
 
 
   // validation of required fields
@@ -548,7 +549,7 @@ app.post('/updateProject', async (req: any, res: Response) => {
       update_authority: process.env.UPDATE_AUTHORITY,
       spl_token: process.env.SPL_TOKEN
     })
-    config.is_holder = holderRoles.length > 0
+    config.is_holder = holderRoles.roles.length > 0
   }
 
   // update values that have been modified
@@ -791,7 +792,8 @@ app.post('/verify', async (req: Request, res: Response) => {
 
     // If matched NFTs are not empty and it's not already in the JSON push it
     var updatedConfig = false
-    var verifiedRoles = await getHodlerRoles(publicKeyString, config)
+    var verifiedHolder = await getHodlerRoles(publicKeyString, config)
+    var verifiedRoles = verifiedHolder.roles
     if (verifiedRoles.length > 0) {
       let hasHodler = false
       var hodlerList = await getHodlerList(req.body.projectName)
@@ -805,7 +807,8 @@ app.post('/verify', async (req: Request, res: Response) => {
         hodlerList.push({
           discordName: discordName,
           publicKey: publicKeyString,
-          roles: verifiedRoles
+          roles: verifiedRoles,
+          donations: verifiedHolder.donations
         })
 
         // increment verification count
