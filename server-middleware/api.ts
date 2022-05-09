@@ -201,6 +201,7 @@ app.get('/getProject', async (req: Request, res: Response) => {
       spl_token: config.spl_token,
       royalty_wallet_id: config.royalty_wallet_id,
       verifications: config.verifications,
+      donations: (config.donations) ? config.donations : 0,
       message: config.message,
       discord_webhook: defaultRedactedString,
       discord_bot_token: defaultRedactedString,
@@ -835,11 +836,15 @@ app.post('/verify', async (req: Request, res: Response) => {
 
       // update project donation totals if necessary 
       if (donationIncrement != 0) {
-        logger.info(`project ${req.body.project} donation total increment by ${donationIncrement} for wallet ${publicKeyString}`)
+        logger.info(`project ${req.body.projectName} donation total increment by ${donationIncrement} for wallet ${publicKeyString}`)
+        if (!config.donations) {
+          config.donations = 0
+        }
         config.donations += donationIncrement
         if (config.donations < 0) {
           config.donations = 0
         }
+        logger.info(`project ${req.body.projectName} donations now set to ${config.donations} for wallet ${publicKeyString}`)
         updatedConfig = true
       }
     } else {
