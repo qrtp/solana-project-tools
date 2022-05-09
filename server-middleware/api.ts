@@ -795,13 +795,28 @@ app.post('/verify', async (req: Request, res: Response) => {
     var verifiedHolder = await getHodlerRoles(publicKeyString, config)
     var verifiedRoles = verifiedHolder.roles
     if (verifiedRoles.length > 0) {
-      let hasHodler = false
+      var hasHodler = false
+      var donationIncrement = 0
       var hodlerList = await getHodlerList(req.body.projectName)
       for (let holder of hodlerList) {
         if (holder.discordName === discordName && holder.publicKey == publicKeyString) {
+
+          // current holder info
+          logger.info(`verified holder ${JSON.stringify(verifiedHolder)} vs existing holder ${JSON.stringify(holder)}`)
+          if (holder.donations) {
+            donationIncrement = verifiedHolder.donations - holder.donations
+          } else {
+            donationIncrement = verifiedHolder.donations
+          }
+
+          // update the existing holder
           hasHodler = true
+          holder.roles = verifiedRoles
+          holder.donations = verifiedHolder.donations
         }
       }
+
+      // add a new holder to the list if necessary
       if (!hasHodler) {
         logger.info(`adding ${discordName} to hodler list with wallet ${publicKeyString}`)
         hodlerList.push({
@@ -811,9 +826,20 @@ app.post('/verify', async (req: Request, res: Response) => {
           donations: verifiedHolder.donations
         })
 
-        // increment verification count
+        // increment metrics
+        donationIncrement = verifiedHolder.donations
         var count = (config.verifications) ? config.verifications : 0
         config.verifications = ++count
+        updatedConfig = true
+      }
+
+      // update project donation totals if necessary 
+      if (donationIncrement != 0) {
+        logger.info(`project ${req.body.project} donation total increment by ${donationIncrement} for wallet ${publicKeyString}`)
+        config.donations += donationIncrement
+        if (config.donations < 0) {
+          config.donations = 0
+        }
         updatedConfig = true
       }
     } else {
@@ -841,7 +867,7 @@ app.post('/verify', async (req: Request, res: Response) => {
       responseData.message = msg
       return res.status(400).send(responseData)
     }
-    const doer = await myGuild.members.cache.find((member: any) => (member.user.username === username && member.user.discriminator === discriminator))
+    const doer = await myGuild.members.cache.find((member: any) => (member.user.username.trim().toLowerCase() == username.trim().toLowerCase() && member.user.discriminator.trim().toLowerCase() == discriminator.trim().toLowerCase()))
     if (!doer) {
       var msg = `Cannot find user ${discordName} on server ${config.discord_server_id}.`
       if (config.discord_url) {
