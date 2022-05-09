@@ -315,7 +315,8 @@ app.get('/getProjects', async (req: Request, res: Response) => {
           connected_twitter_name: config.connected_twitter_name,
           is_holder: config.is_holder,
           verifications: config.verifications,
-          sales: (config.sales) ? config.sales : 0
+          sales: (config.sales) ? config.sales : 0,
+          donations: (config.donations) ? config.donations : 0
         }
         projectData.push(data)
         if (config.is_holder) {
@@ -437,7 +438,7 @@ app.post('/createProject', async (req: any, res: Response) => {
     update_authority: process.env.UPDATE_AUTHORITY,
     spl_token: process.env.SPL_TOKEN
   })
-  var isHolder = holderRoles.length > 0
+  var isHolder = holderRoles.roles.length > 0
 
 
   // validation of required fields
@@ -548,7 +549,7 @@ app.post('/updateProject', async (req: any, res: Response) => {
       update_authority: process.env.UPDATE_AUTHORITY,
       spl_token: process.env.SPL_TOKEN
     })
-    config.is_holder = holderRoles.length > 0
+    config.is_holder = holderRoles.roles.length > 0
   }
 
   // update values that have been modified
@@ -791,26 +792,54 @@ app.post('/verify', async (req: Request, res: Response) => {
 
     // If matched NFTs are not empty and it's not already in the JSON push it
     var updatedConfig = false
-    var verifiedRoles = await getHodlerRoles(publicKeyString, config)
+    var verifiedHolder = await getHodlerRoles(publicKeyString, config)
+    var verifiedRoles = verifiedHolder.roles
     if (verifiedRoles.length > 0) {
-      let hasHodler = false
+      var hasHodler = false
+      var donationIncrement = 0
       var hodlerList = await getHodlerList(req.body.projectName)
       for (let holder of hodlerList) {
         if (holder.discordName === discordName && holder.publicKey == publicKeyString) {
+
+          // current holder info
+          logger.info(`verified holder ${JSON.stringify(verifiedHolder)} vs existing holder ${JSON.stringify(holder)}`)
+          if (holder.donations) {
+            donationIncrement = verifiedHolder.donations - holder.donations
+          } else {
+            donationIncrement = verifiedHolder.donations
+          }
+
+          // update the existing holder
           hasHodler = true
+          holder.roles = verifiedRoles
+          holder.donations = verifiedHolder.donations
         }
       }
+
+      // add a new holder to the list if necessary
       if (!hasHodler) {
         logger.info(`adding ${discordName} to hodler list with wallet ${publicKeyString}`)
         hodlerList.push({
           discordName: discordName,
           publicKey: publicKeyString,
-          roles: verifiedRoles
+          roles: verifiedRoles,
+          donations: verifiedHolder.donations
         })
 
-        // increment verification count
+        // increment metrics
+        donationIncrement = verifiedHolder.donations
         var count = (config.verifications) ? config.verifications : 0
         config.verifications = ++count
+        updatedConfig = true
+      }
+
+      // update project donation totals if necessary 
+      if (donationIncrement != 0) {
+        logger.info(`project ${req.body.project} donation total increment by ${donationIncrement} for wallet ${publicKeyString}`)
+        config.donations += donationIncrement
+        if (config.donations < 0) {
+          config.donations = 0
+        }
         updatedConfig = true
       }
     } else {
@@ -838,7 +867,7 @@ app.post('/verify', async (req: Request, res: Response) => {
       responseData.message = msg
       return res.status(400).send(responseData)
     }
-    const doer = await myGuild.members.cache.find((member: any) => (member.user.username === username && member.user.discriminator === discriminator))
+    const doer = await myGuild.members.cache.find((member: any) => (member.user.username.trim().toLowerCase() == username.trim().toLowerCase() && member.user.discriminator.trim().toLowerCase() == discriminator.trim().toLowerCase()))
     if (!doer) {
       var msg = `Cannot find user ${discordName} on server ${config.discord_server_id}.`
       if (config.discord_url) {

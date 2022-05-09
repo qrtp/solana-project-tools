@@ -91,7 +91,8 @@ export async function getProjectVotesForUser(project: string, publicKey: string)
     }
 
     // ensure user has valid role in this project
-    var verifiedRoles = await getHodlerRolesWithFallback(project, publicKey, config)
+    var verifiedHolder = await getHodlerRolesWithFallback(project, publicKey, config)
+    var verifiedRoles = verifiedHolder.roles
     if (verifiedRoles.length == 0) {
         logger.info("user not verified: " + publicKey)
         return false

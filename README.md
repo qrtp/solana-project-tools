@@ -7,7 +7,7 @@ The primary purpose of this repository is to enable Solana NFT project owners to
 Additional services offered in the project tools suite:
 
 1. NFT holder only voting service
-1. Holder snapshots
+1. Verified holder snapshots
 1. Sales tracking
 1. Sales notification bots for Twitter and Discord
 
