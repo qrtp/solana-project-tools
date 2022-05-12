@@ -10,7 +10,7 @@ const loggerWithLabel = require('../logger/structured')
  */
 const logger = loggerWithLabel("vote-project")
 
-// retreives the current hodler list in JSON format
+// retrieves the current holder list in JSON format
 export async function getAllProjectVotes(name: any) {
     var voteStr = await read(getVoteFilePath(name))
     return JSON.parse((voteStr != "") ? voteStr : "[]")

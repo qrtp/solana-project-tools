@@ -33,3 +33,11 @@ export function sleep(n: number) {
         setTimeout(resolve, n * 1000);
     });
 }
+
+// vetDonationCount returns a valid number
+export function getNumerFromAny(value: any) {
+    if (!value) {
+        return 0
+    }
+    return +value
+}
