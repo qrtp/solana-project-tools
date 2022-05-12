@@ -184,6 +184,11 @@ app.get('/getProject', async (req: Request, res: Response) => {
       return res.sendStatus(404)
     }
 
+    // calculate donation values
+    var donationsToUnlock = (process.env.COMMUNITY_DONATION) ? +process.env.COMMUNITY_DONATION : 0
+    var donations = (config.donations) ? config.donations : 0
+    var donationsRemaining = Math.max(donationsToUnlock - donations, 0)
+
     // remove sensitive data
     var returnConfig = {
       project: projectName,
@@ -201,7 +206,8 @@ app.get('/getProject', async (req: Request, res: Response) => {
       spl_token: config.spl_token,
       royalty_wallet_id: config.royalty_wallet_id,
       verifications: config.verifications,
-      donations: (config.donations) ? config.donations : 0,
+      donations: donations,
+      donations_remaining: donationsRemaining,
       message: config.message,
       discord_webhook: defaultRedactedString,
       discord_bot_token: defaultRedactedString,
@@ -246,7 +252,7 @@ app.get('/getProjectHolders', sessionMiddleware, async (req: any, res: Response)
     return res.sendStatus(401)
   }
 
-  // ensuure the user owns the project
+  // ensure the user owns the project
   var config = await getConfig(req.query["project"])
   if (config) {
     if (config.owner_public_key != sessionPublicKey) {
@@ -754,6 +760,8 @@ app.post('/verify', async (req: Request, res: Response) => {
   var rolesAdded: any[] = []
   var responseData = {
     success: false,
+    donations: 0,
+    upgraded: false,
     roles: rolesAdded,
     message: "",
   }
@@ -836,6 +844,11 @@ app.post('/verify', async (req: Request, res: Response) => {
 
       // update project donation totals if necessary 
       if (donationIncrement != 0) {
+
+        // add donation count to the response
+        responseData.donations = donationIncrement
+
+        // determine the new donation count for the project
         logger.info(`project ${req.body.projectName} donation total increment by ${donationIncrement} for wallet ${publicKeyString}`)
         if (!config.donations) {
           config.donations = 0
@@ -845,6 +858,16 @@ app.post('/verify', async (req: Request, res: Response) => {
           config.donations = 0
         }
         logger.info(`project ${req.body.projectName} donations now set to ${config.donations} for wallet ${publicKeyString}`)
+
+        // determine if community donation has unlocked premium service
+        var donationsToUnlock = (process.env.COMMUNITY_DONATION) ? +process.env.COMMUNITY_DONATION : 0
+        if (!config.is_holder && config.donations >= donationsToUnlock) {
+          logger.info(`project ${req.body.projectName} upgraded by wallet ${publicKeyString} donations ${donationIncrement}`)
+          config.is_holder = true
+          responseData.upgraded = true
+        }
+
+        // flag to indicate the config is updated
         updatedConfig = true
       }
     } else {
