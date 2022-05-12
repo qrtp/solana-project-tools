@@ -101,6 +101,7 @@
         v-if="
           step === 5 &&
           projectConfig.data.donations_remaining > 0 &&
+          !projectConfig.data.is_holder &&
           !verifiedUpgraded
         "
       >
@@ -120,7 +121,13 @@
           </v-btn>
         </div>
       </div>
-      <div v-if="step === 5 && projectConfig.data.donations_remaining == 0">
+      <div
+        v-if="
+          step === 5 &&
+          (projectConfig.data.donations_remaining == 0 ||
+            projectConfig.data.is_holder)
+        "
+      >
         <h2 class="block text-gray-700 text-xl font-bold mb-1">
           Thank you, {{ projectConfig.data.project_friendly_name }}!!
         </h2>
