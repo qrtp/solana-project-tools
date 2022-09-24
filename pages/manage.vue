@@ -324,10 +324,10 @@
             <v-card-title class="text-h5">
               Unlock premium features
             </v-card-title>
-            <v-card-text>Minting our NFT (1 SOL) unlocks all premium features, and is also a donation to charity.</v-card-text>
+            <v-card-text>Buying our NFT (1 SOL mint) unlocks all premium features, and is also a donation to charity.</v-card-text>
             <v-card-text>If you decide to make a donation, make sure to use the wallet managing this project. Simply return to this page and "Save" the project to upgrade the available features.</v-card-text>
             <v-card-actions>
-              <v-btn color="green darken-1" text href="https://mint.nft4cause.app">Mint</v-btn>
+              <v-btn color="green darken-1" text href="https://magiceden.io/marketplace/nft4cause">Buy</v-btn>
               <v-btn color="green darken-1" text @click="unlockDialog=false">Cancel</v-btn>
             </v-card-actions>
           </v-card>

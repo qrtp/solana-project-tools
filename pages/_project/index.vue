@@ -154,7 +154,7 @@
       <v-card>
         <v-card-title class="text-h5"> You can help! </v-card-title>
         <v-card-text
-          >Mint a Pandemic Heros NFT to help your community unlock exclusive
+          >Buy a Pandemic Heros NFT to help your community unlock exclusive
           features, and we'll donate <b>80% of the proceeds to charity</b>. As a
           holder you can vote to choose our charity at the end of every
           quarter!</v-card-text
@@ -165,8 +165,8 @@
           automatically!</v-card-text
         >
         <v-card-actions>
-          <v-btn color="green darken-1" text href="https://mint.nft4cause.app"
-            >Mint</v-btn
+          <v-btn color="green darken-1" text href="https://magiceden.io/marketplace/nft4cause"
+            >Buy</v-btn
           >
           <v-btn color="green darken-1" text @click="donateDialog = false"
             >Cancel</v-btn
